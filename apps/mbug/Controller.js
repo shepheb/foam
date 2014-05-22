@@ -133,12 +133,7 @@ FOAModel({
             });
           });
 
-        var sav = SwipeAltView.create({
-          views: views,
-          data: self.filteredDAO
-        });
-
-        return sav;
+        return SwipeAltView.create({ views: views });
       }
     },
     {
