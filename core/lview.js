@@ -21,13 +21,13 @@ FOAModel({
       name: 'x',
       type: 'int',
       view: 'IntFieldView',
-      defaultValue: 5
+      defaultValue: 0
     },
     {
       name: 'y',
       type: 'int',
       view: 'IntFieldView',
-      defaultValue: 5
+      defaultValue: 0
     },
     {
       name: 'width',
@@ -61,6 +61,14 @@ FOAModel({
   ],
 
   methods: {
+    init: function() {
+      this.SUPER();
+      var self = this;
+      this.children.forEach(function(c) {
+        c.parent = self;
+      });
+    },
+
     addChild: function(child) {
       this.children.push(child);
       child.parent = this;
@@ -88,6 +96,18 @@ FOAModel({
     // out their children.
     paint: function() {
       this.children.forEach(function(c) { c.paint(); });
+    },
+
+    // Given a containing element, will render this view and its children into
+    // that element. That means performing layout() recursively, and then
+    // paint().
+    // NB: Sets position: relative on the containing element.
+    render: function(container) {
+      this.container = container;
+      this.container.style.position = 'relative';
+
+      this.layout();
+      this.paint();
     }
   }
 });
