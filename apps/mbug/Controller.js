@@ -106,7 +106,7 @@ FOAModel({
     {
       name: 'filteredDAO',
       model_: 'DAOProperty',
-      view: { model_: 'DAOListView'/*'TouchListView'*/, mode: 'read-only', rowView: 'IssueCitationView'  }
+      help: 'Top-level filtered DAO. Further filtered by each canned query.'
     },
     {
       name: 'sortOrder',
@@ -124,25 +124,37 @@ FOAModel({
       name: 'q'
     },
     {
-      name: 'can',
-      defaultValue: 'status=Accepted,Assigned,Available,New,Started,Unconfirmed,Untriaged',
-      view: function() {
-        var open = ProjectController.CAN.defaultValue;
+      name: 'altView',
+      factory: function() {
+        var open = 'status=Accepted,Assigned,Available,New,Started,Unconfirmed,Untriaged';
+        var self = this;
+        var views = [
+    //        ['',                     'All issues'],
+            [open,                   'OPEN ISSUES'],
+            [open + ' owner=me',     'OWNED BY ME'],
+    //        [open + ' reporter=me',  'Open and reported by me'],
+            [open + ' is:starred',   'STARRED']
+    //        [open + ' commentby:me', 'Open and comment by me'],
+    //        ['status=New',           'New issues'],
+    //        ['status=Fixed,Done',    'Issues to verify']
+          ].map(function(filter) {
+            var dao = ProxyDAO.create().limit(10).where(
+                QueryParser.parseString(filter[0]) || TRUE);
+            dao.delegate$ = self.filteredDAO$;
+            return ViewChoice.create({
+              view: DAOListView.create({
+                dao: dao,
+                mode: 'read-only',
+                rowView: 'IssueCitationView'
+              }),
 
-        return ChoiceListView.create({
-          orientation: 'horizontal',
-//          helpText: 'Search within:',
-          choices: [
-//            ['',                     'All issues',              1],
-            [open,                   'OPEN ISSUES',             2],
-            [open + ' is:starred',   'STARRED',  5],
-            [open + ' owner=me',     'OWNED BY ME',    3]
-//            [open + ' reporter=me',  'Open and reported by me', 4],
-//            [open + ' commentby:me', 'Open and comment by me',  8],
-//            ['status=New',           'New issues',              6],
-//            ['status=Fixed,Done',    'Issues to verify',        7]
-          ]
-        });
+              label: filter[1]
+            });
+          });
+
+        var sav = SwipeAltView.create({
+          views: views });
+        return sav;
       }
     }
   ],
@@ -162,18 +174,13 @@ FOAModel({
       this.SUPER();
 
       var self = this;
-
       Events.dynamic(
-        function() { self.can; self.sortOrder; self.q; },
+        function() { self.sortOrder; self.q; },
         function() {
           console.log('Query Update');
-          self.filteredDAO = self.issueDAO.
-            limit(10).
-            where(AND(
-              QueryParser.parseString(self.can) || TRUE,
-              QueryParser.parseString(self.q) || TRUE
-            ).partialEval()).
-            orderBy(self.sortOrder);
+          self.filteredDAO = self.issueDAO
+              .where(QueryParser.parseString(self.q) || TRUE)
+              .orderBy(self.sortOrder);
         }
       );
     }
@@ -183,9 +190,7 @@ FOAModel({
     <div>
        $$changeProject $$projectName{mode: 'read-only'} $$q $$sortOrder
        <hr>
-       $$can
-       <hr>
-       $$filteredDAO
+       %%altView
     </div>
   */}
   ]
