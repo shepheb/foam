@@ -106,26 +106,8 @@ FOAModel({
     {
       name: 'filteredDAO',
       model_: 'DAOProperty',
-      help: 'Top-level filtered DAO. Further filtered by each canned query.'
-    },
-    {
-      name: 'sortOrder',
-      defaultValue: QIssue.MODIFIED,
-      view: {
-        model_: 'ChoiceView',
-        choices: [
-          [ QIssue.MODIFIED,  'Last modified' ],
-          [ QIssue.PRIORITY,  'Priority' ],
-          [ QIssue.ID,        'Issue ID' ]
-        ]
-      }
-    },
-    {
-      name: 'q'
-    },
-    {
-      name: 'altView',
-      factory: function() {
+      help: 'Top-level filtered DAO. Further filtered by each canned query.',
+      view: function() {
         var open = 'status=Accepted,Assigned,Available,New,Started,Unconfirmed,Untriaged';
         var self = this;
         var views = [
@@ -138,9 +120,8 @@ FOAModel({
     //        ['status=New',           'New issues'],
     //        ['status=Fixed,Done',    'Issues to verify']
           ].map(function(filter) {
-            var dao = ProxyDAO.create().limit(10).where(
+            var dao = ProxyDAO.create({ delegate$: self.filteredDAO$ }).limit(10).where(
                 QueryParser.parseString(filter[0]) || TRUE);
-            dao.delegate$ = self.filteredDAO$;
             return ViewChoice.create({
               view: DAOListView.create({
                 dao: dao,
@@ -156,6 +137,21 @@ FOAModel({
           views: views });
         return sav;
       }
+    },
+    {
+      name: 'sortOrder',
+      defaultValue: QIssue.MODIFIED,
+      view: {
+        model_: 'ChoiceView',
+        choices: [
+          [ QIssue.MODIFIED,  'Last modified' ],
+          [ QIssue.PRIORITY,  'Priority' ],
+          [ QIssue.ID,        'Issue ID' ]
+        ]
+      }
+    },
+    {
+      name: 'q'
     }
   ],
   actions: [
@@ -190,7 +186,7 @@ FOAModel({
     <div>
        $$changeProject $$projectName{mode: 'read-only'} $$q $$sortOrder
        <hr>
-       %%altView
+       $$filteredDAO
     </div>
   */}
   ]
