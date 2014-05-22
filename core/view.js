@@ -2625,6 +2625,15 @@ FOAModel({
       }
     },
     {
+      name: 'data',
+      help: 'Generic data field for the views. Proxied to all the child views.',
+      postSet: function(old, nu) {
+        this.views.forEach(function(c) {
+          c.view.data = nu;
+        });
+      }
+    },
+    {
       name: 'slider',
       help: 'Internal element which gets translated around',
       hidden: true
@@ -4031,6 +4040,46 @@ FOAModel({
 
 
 FOAModel({
+  name: 'PredicatedView',
+  extendsModel: 'View',
+
+  properties: [
+    {
+      name: 'predicate',
+      defaultValueFn: function() { return TRUE; },
+      postSet: function() { this.updateDAO(); }
+    },
+    {
+      name: 'data',
+      help: 'Payload of the view; assumed to be a DAO.',
+      postSet: function() { this.updateDAO(); }
+    },
+    {
+      name: 'view',
+      required: true
+    }
+  ],
+
+  methods: {
+    init: function() {
+      if ( typeof this.view === 'string' )
+        this.view = FOAM.lookup(this.view);
+    },
+    toHTML: function() {
+      return this.view.toHTML();
+    },
+    initHTML: function() {
+      this.view.initHTML();
+    },
+    updateDAO: function() {
+      if ( this.data && this.data.where )
+        this.view.data = this.data.where(this.predicate);
+    }
+  }
+});
+
+
+FOAModel({
   name: 'DAOListView',
   extendsModel: 'View',
 
@@ -4042,6 +4091,12 @@ FOAModel({
         if ( oldDAO ) oldDAO.unlisten(this.onDAOUpdate);
         newDAO.listen(this.onDAOUpdate);
         this.updateHTML();
+      }
+    },
+    {
+      name: 'data',
+      setter: function(value) {
+        this.value = SimpleValue.create(value);
       }
     },
     {

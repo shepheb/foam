@@ -120,13 +120,13 @@ FOAModel({
     //        ['status=New',           'New issues'],
     //        ['status=Fixed,Done',    'Issues to verify']
           ].map(function(filter) {
-            var dao = ProxyDAO.create({ delegate$: self.filteredDAO$ }).limit(10).where(
-                QueryParser.parseString(filter[0]) || TRUE);
             return ViewChoice.create({
-              view: DAOListView.create({
-                dao: dao,
-                mode: 'read-only',
-                rowView: 'IssueCitationView'
+              view: PredicatedView.create({
+                predicate: QueryParser.parseString(filter[0]) || TRUE,
+                view: DAOListView.create({
+                  mode: 'read-only',
+                  rowView: 'IssueCitationView'
+                })
               }),
 
               label: filter[1]
@@ -134,7 +134,10 @@ FOAModel({
           });
 
         var sav = SwipeAltView.create({
-          views: views });
+          views: views,
+          data: self.filteredDAO
+        });
+
         return sav;
       }
     },
