@@ -2608,6 +2608,8 @@ FOAModel({
         return nu;
       },
       postSet: function(oldValue, viewChoice) {
+        this.children[oldValue].view.deepPublish('hide');
+        this.children[viewChoice].view.deepPublish('show');
         this.snapToCurrent();
       },
       hidden: true
@@ -4124,6 +4126,15 @@ FOAModel({
     init: function() {
       this.SUPER();
       this.X = this.X.sub();
+
+      this.subscribe('hide', function() {
+        this.dao.unlisten(this.onDAOUpdate);
+      });
+
+      this.subscribe('show', function() {
+        this.dao.listen(this.onDAOUpdate);
+        this.updateHTML();
+      });
     },
 
     initHTML: function() {
