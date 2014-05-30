@@ -172,6 +172,14 @@ FOAModel({
   help: 'A layout LView, which places its children adjacent to each other ' +
     'in a full-width vertical column.',
 
+  properties: [
+    {
+      name: 'spacing',
+      type: 'int',
+      view: 'IntFieldView'
+    }
+  ],
+
   methods: {
     layout: function() {
       // My x and y are inherited by the children.
@@ -187,11 +195,48 @@ FOAModel({
         c.x = x;
         c.y = y;
         c.layout();
-        y += c.height;
+        y += c.height + this.spacing;
       }
 
       this.width = this.parent.width;
-      this.height = y - this.y;
+      this.height = y - this.y - (this.children.length > 0 ? this.spacing : 0);
+    }
+  }
+});
+
+FOAModel({
+  name: 'RowLView',
+  extendsModel: 'LView',
+  help: 'A layout LView whose children are placed in a row.',
+
+  properties: [
+    {
+      name: 'spacing',
+      type: 'int',
+      view: 'IntFieldView'
+    }
+  ],
+
+  methods: {
+    layout: function() {
+      // My x and y are inherited by the children. They are top-aligned and side
+      // by side.
+      // TODO: Spacing.
+      // TODO: Alignment.
+
+      var x = this.x;
+      var y = this.y;
+
+      for ( var i = 0 ; i < this.children.length ; i++ ) {
+        var c = this.children[i];
+        c.x = x;
+        c.y = y;
+        c.layout();
+        x += c.width + this.spacing;
+      }
+
+      this.width = x - this.x - (this.children.length ? this.spacing : 0);
+      this.height = this.parent.height;
     }
   }
 });

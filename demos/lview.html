@@ -8,16 +8,27 @@
   </head>
   <body>
     <h2>Header</h2>
-    <div id="container" style="width: 500px; height: 300px; border: 1px solid black;"></div>
+    <div id="container"
+        style="width: 500px; height: 350px; border: 1px solid black;"></div>
 
     <script type="text/javascript">
       var view = ColumnLView.create({
+        spacing: 10,
         children: [
           BackgroundLView.create({
             width: 300,
             background: 'green'
           }),
-          BackgroundLView.create({}),
+          RowLView.create({
+            spacing: 30,
+            children: [
+              BackgroundLView.create({ width: 120, background: '#a00' }),
+              BackgroundLView.create({
+                  width: 30, height: 40, background: '#b00' }),
+              BackgroundLView.create({
+                  width: 50, height: 70, background: '#c00' })
+            ]
+          }),
           BackgroundLView.create({
             width: 451,
             background: 'red'
