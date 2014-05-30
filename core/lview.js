@@ -136,8 +136,8 @@ FOAModel({
         this.$.style.position = 'absolute';
       }
 
-      this.$.style.left   = this.x + 'px';
-      this.$.style.top    = this.y + 'px';
+      this.$.style.webkitTransform = 'translate3d(' + this.x + 'px, ' + this.y + 'px,0)';
+      this.$.style.webkitTransformStyle = 'preserve-3d';
       this.$.style.width  = this.width + 'px';
       this.$.style.height = this.height + 'px';
 
