@@ -43,6 +43,10 @@ FOAModel({
   ],
 
   methods: {
+    init: function() {
+      this.SUPER();
+      this.X.touchManager = TouchManager.create({});
+    },
     toHTML: function() { return this.stack.toHTML(); },
     projectContext: function() {
       return this.X.sub({

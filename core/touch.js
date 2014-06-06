@@ -64,12 +64,13 @@ FOAModel({
       this.X.window.document.addEventListener('touchmove', this.onTouchMove);
       this.X.window.document.addEventListener('touchcancel', this.onTouchCancel);
       this.X.window.document.addEventListener('touchleave', this.onTouchLeave);
+      this.attached = true;
     },
 
     install: function(recv) {
       if ( ! this.attached ) this.attachHandlers();
 
-      receivers.push(recv);
+      this.receivers.push(recv);
 
       // Attach a touchstart handler to the capture phase, this checks
       // whether each touch is inside the given element, and records the
@@ -83,15 +84,18 @@ FOAModel({
       for ( var i = 0; i < event.changedTouches.length; i++ ) {
         var t = event.changedTouches[i];
         // TODO: Maybe capture the offset into the element here?
-        this.activeTouches[i] = true;
+        this.activeTouches[t.identifier] = true;
       }
     },
 
     notifyReceivers: function(type, event) {
-      var changed = event.changedTouches.map(
-          function(x) { return x.identifier; });
+      var changed = [];
+      for ( var i = 0 ; i < event.changedTouches.length ; i++ ) {
+        changed.push(event.changedTouches[i].identifier);
+      }
+
       var rets = [];
-      for ( var i = 0 ; i < this.receivers.length; i++ ) {
+      for ( i = 0 ; i < this.receivers.length; i++ ) {
         var matched = false;
         for ( var j = 0 ; j < changed.length; j++ ) {
           if ( this.receivers[i].activeTouches[changed[j]] ) {
@@ -104,7 +108,8 @@ FOAModel({
         if ( ! matched ) continue;
 
         // Since it is watching, let's notify it of the change.
-        rets.push(this.receivers[i][type](this.touches, changed));
+        var f = this.receivers[i].delegate[type];
+        if ( f ) rets.push(f(this.touches, changed));
       }
 
       // Now rets contains the responses from the listeners.
@@ -161,7 +166,7 @@ FOAModel({
           });
         }
 
-        this.notifyReceivers('touchStart', e);
+        this.notifyReceivers('onTouchStart', e);
       }
     },
     {
@@ -175,7 +180,7 @@ FOAModel({
           }
           this.touches[t.identifier].move(t);
         }
-        this.notifyReceivers('touchMove', e);
+        this.notifyReceivers('onTouchMove', e);
       }
     },
     {
@@ -189,7 +194,7 @@ FOAModel({
           }
           this.touches[t.identifier].move(t);
         }
-        this.notifyReceivers('touchEnd', e);
+        this.notifyReceivers('onTouchEnd', e);
         for ( i = 0; i < e.changedTouches.length; i++ ) {
           delete this.touches[e.changedTouches[i].identifier];
         }
@@ -198,7 +203,7 @@ FOAModel({
     {
       name: 'onTouchCancel',
       code: function(e) {
-        this.notifyReceivers('touchCancel', e);
+        this.notifyReceivers('onTouchCancel', e);
         for ( i = 0; i < e.changedTouches.length; i++ ) {
           delete this.touches[e.changedTouches[i].identifier];
         }
@@ -207,7 +212,7 @@ FOAModel({
     {
       name: 'onTouchLeave',
       code: function(e) {
-        this.notifyReceivers('touchLeave', e);
+        this.notifyReceivers('onTouchLeave', e);
         for ( i = 0; i < e.changedTouches.length; i++ ) {
           delete this.touches[e.changedTouches[i].identifier];
         }
