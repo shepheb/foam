@@ -29,8 +29,8 @@ FOAModel({
       // TODO:
     },
     move: function(t) {
-      this.x = t.screenX;
-      this.y = t.screenY;
+      this.x = t.clientX;
+      this.y = t.clientY;
     }
   }
 });
@@ -108,7 +108,8 @@ FOAModel({
         if ( ! matched ) continue;
 
         // Since it is watching, let's notify it of the change.
-        var f = this.receivers[i].delegate[type];
+        var d = this.receivers[i].delegate;
+        var f = d[type].bind(d);
         if ( f ) rets.push(f(this.touches, changed));
       }
 
@@ -157,12 +158,13 @@ FOAModel({
             console.warn('Touch start for known touch.');
             continue;
           }
+          console.log(t);
           this.touches[t.identifier] = FOAMTouch.create({
             id: t.identifier,
-            startX: t.screenX,
-            startY: t.screenY,
-            x: t.screenX,
-            y: t.screenY
+            startX: t.clientX,
+            startY: t.clientY,
+            x: t.clientX,
+            y: t.clientY
           });
         }
 
