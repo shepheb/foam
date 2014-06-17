@@ -7,6 +7,58 @@ var util = require('util');
 
 DEBUG_PARSE = true;
 
+// All the binary ops have this form:
+function binOp(prec) {
+  // expr  ws
+  // expr1 ws op ws expr2
+  // 0     1  2  3  4
+  // NB: The precedence here is backwards.
+  // We need to correct it. There are four cases:
+  // 1. Single term - just return it
+  // 2. Two simple terms - build a binop.
+  // 3. RHS is binop with different precedence - build a binop.
+  // 4. RHS is binop with same precedence - follow its LHS branches to the
+  //    first value that is not a binop with this precedence. Make that value
+  //    the RHS of a new binop.
+  // TODO: This is obviously horrible and should be changed as soon as we can
+  // do left-recursion.
+
+  return function(xs) {
+    if ( xs.length <= 2 ) return xs[0]; // Case 1.
+
+    var lhs = xs[0];
+    var rhs = xs[4];
+    var op  = xs[2];
+
+    var child = rhs;
+    var parent;
+
+    while ( FSASTExprBinOp.isInstance(child) && child.prec == prec ) {
+      parent = child;
+      child = parent.lhs;
+    }
+    // Now parent is either undefined or the parent node, and child is the
+    // first non-this-op item on the left branch.
+    // So we build a new binop for this op with lhs and child.
+    var me = FSASTExprBinOp.create({
+      lhs: lhs,
+      rhs: child,
+      prec: prec,
+      op: op
+    });
+
+    if ( ! parent ) {
+      // Parent is not defined (case 2): just return the new op.
+      return me;
+    }
+
+    // Otherwise, install the new op in place of the child, in the parent.
+    parent.lhs = me;
+    // And return the original rhs, which is the top of the expanded tree.
+    return rhs;
+  };
+}
+
 var FSParser = {
   __proto__: grammar,
 
@@ -72,8 +124,8 @@ var FSParser = {
   // TODO: Ternary operator.
   expr: seq(
     sym('expr2'),
+    sym('whitespace'),
     optional(seq(
-      sym('whitespace'),
       '||',
       sym('whitespace'),
       sym('expr')
@@ -82,53 +134,62 @@ var FSParser = {
 
   expr2: seq(
     sym('expr3'),
-    optional(seq(sym('whitespace'), '&&', sym('whitespace'), sym('expr2')))
+    sym('whitespace'),
+    optional(seq('&&', sym('whitespace'), sym('expr2')))
   ),
 
   expr3: seq(
     sym('expr4'),
-    optional(seq(sym('whitespace'), '|', sym('whitespace'), sym('expr3')))
+    sym('whitespace'),
+    optional(seq('|', sym('whitespace'), sym('expr3')))
   ),
 
   expr4: seq(
     sym('expr5'),
-    optional(seq(sym('whitespace'), '^', sym('whitespace'), sym('expr5')))
+    sym('whitespace'),
+    optional(seq('^', sym('whitespace'), sym('expr5')))
   ),
 
-  expr5: alt(
-    seq(sym('expr5'), sym('whitespace'), '&', sym('whitespace'), sym('expr6')),
-    sym('expr6')
+  expr5: seq(
+    sym('expr6'),
+    sym('whitespace'),
+    optional(seq('&', sym('whitespace'), sym('expr5')))
   ),
 
-  expr6: alt(
-    seq(sym('expr6'), sym('whitespace'), sym('eqop'), sym('whitespace'), sym('expr7')),
-    sym('expr7')
+  expr6: seq(
+    sym('expr7'),
+    sym('whitespace'),
+    optional(seq(sym('eqop'), sym('whitespace'), sym('expr6')))
   ),
   eqop: alt('==', '===', '!=', '!=='),
 
   // TODO: instanceof?
   // TODO: in?
-  expr7: alt(
-    seq(sym('expr7'), sym('whitespace'), sym('relop'), sym('whitespace'), sym('expr8')),
-    sym('expr8')
+  expr7: seq(
+    sym('expr8'),
+    sym('whitespace'),
+    optional(seq(sym('relop'), sym('whitespace'), sym('expr7')))
   ),
   relop: alt('<', '<=', '>', '>='),
 
-  expr8: alt(
-    seq(sym('expr8'), sym('whitespace'), sym('shiftop'), sym('whitespace'), sym('expr9')),
-    sym('expr9')
+  expr8: seq(
+    sym('expr9'),
+    sym('whitespace'),
+    optional(seq(sym('shiftop'), sym('whitespace'), sym('expr8')))
   ),
   shiftop: alt('<<', '>>', '>>>'),
 
-  expr9: alt(
-    seq(sym('expr9'), sym('whitespace'), sym('addop'), sym('whitespace'), sym('expr10')),
-    sym('expr10')
+  expr9: seq(
+    sym('expr10'),
+    sym('whitespace'),
+    optional(seq(sym('addop'), sym('whitespace'), sym('expr9')))
   ),
   addop: alt('+', '-'),
 
-  expr10: alt(
-    seq(sym('expr10'), sym('whitespace'), sym('mulop'), sym('whitespace'), sym('expr11')),
-    sym('expr11')
+  expr10: seq(
+    sym('expr11'),
+    sym('whitespace'),
+    optional(seq(sym('mulop'), sym('whitespace'), sym('expr10')))
   ),
   mulop: alt('%', '*', '/'),
 
@@ -139,36 +200,47 @@ var FSParser = {
   ),
 
   expr12: alt(
-    seq('~', sym('expr13')),
+    seq('~', sym('whitespace'), sym('expr13')),
     sym('expr13')
   ),
 
   expr13: alt(
-    seq('!', sym('expr14')),
+    seq('!', sym('whitespace'), sym('expr14')),
     sym('expr14')
   ),
 
   expr14: alt(
-    seq(sym('expr15', '--')),
-    seq(sym('expr15', '++')),
-    sym('expr15')
+    sym('expr15'),
+    sym('whitespace'),
+    optional(alt('--', '++'))
   ),
 
-  expr15: alt(
-    seq(sym('expr15'), sym('whitespace'), '(',
+  expr15: seq(
+    sym('expr16'),
+    sym('whitespace'),
+    repeat(
+      seq(
+        '(',
         repeat(seq(sym('whitespace'), sym('expr')),
                seq(sym('whitespace'), ',')),
         sym('whitespace'),
-        ')'),
-    sym('expr16')
+        ')'
+      ),
+      sym('whitespace')
+    )
   ),
 
-  expr16: alt(
-    seq(sym('expr16'), sym('whitespace'), '.', sym('identifier')),
-    seq(sym('expr16'), sym('whitespace'), '[',
-        sym('whitespace'), sym('expr'), sym('whitespace'),
-        ']'),
-    sym('expr17')
+  expr16: seq(
+    sym('expr17'),
+    sym('whitespace'),
+    repeat(
+      seq(
+        alt(seq('.', sym('whitespace'), sym('identifier')),
+            seq('[', sym('whitespace'), sym('expr'), sym('whitespace'), ']')),
+        sym('whitespace')
+      ),
+      sym('whitespace')
+    )
   ),
 
   expr17: alt(
@@ -176,6 +248,7 @@ var FSParser = {
     sym('expr18')
   ),
 
+  // TODO: Numeric literals.
   expr18: sym('identifier')
 };
 
@@ -223,26 +296,133 @@ FSParser.addActions({
   // Returns an Array of FSType values, not an AST node.
   typelist: function(xs) {
     return xs.map(function(t) { return t[1]; });
+  },
+
+  // Logical ||
+  expr: binOp(1),
+  // Logical &&
+  expr2: binOp(2),
+  // Bitwise |
+  expr3: binOp(3),
+  // Bitwise ^
+  expr4: binOp(4),
+  // Bitwise &
+  expr5: binOp(5),
+  // Equalities
+  expr6: binOp(6),
+  // Inequalities
+  expr7: binOp(7),
+  // Bit-shifting operations.
+  expr8: binOp(8),
+  // Addition operations
+  expr9: binOp(9),
+
+  // Multiplicative operations
+  expr10: binOp(10),
+
+  // unary + and -
+  expr11: function(xs) {
+    // + expr
+    // - expr
+    // expr
+    if ( FSASTExpr.isInstance(xs) ) return xs;
+    return FSASTExprUnaryMath.create({
+      expr: xs[1],
+      op: xs[0]
+    });
+  },
+
+  // unary ~
+  expr12: function(xs) {
+    // '~' ws expr
+    // expr
+    if ( FSASTExpr.isInstance(xs) ) return xs;
+    return FSASTExprBitwiseNegate.create({
+      expr: xs[2]
+    });
+  },
+
+  // unary !
+  expr13: function(xs) {
+    // '!' ws expr
+    // expr
+    // 0   1  2
+    console.log('XXXXX:' + xs);
+    if ( FSASTExpr.isInstance(xs) ) return xs;
+    return FSASTExprBooleanNegate.create({
+      expr: xs[2]
+    });
+  },
+
+  // postfix -- and ++
+  expr14: function(xs) {
+    // expr ws ('--' or '++')
+    var inner = xs[0];
+    if ( xs.length > 2 ) {
+      return FSASTExprPostfix.create({
+        op: xs[2],
+        expr: inner
+      });
+    }
+    return inner;
+  },
+
+  // Function calls
+  expr15: function(xs) {
+    // subexpr ws [calls]
+    // 0       1  2
+    // calls: '(' [[ws, expr]] ')'
+    //        0   1             2
+    if 
+    var ast = xs[0];
+    var calls = xs[2];
+
+    for ( var i = 0 ; i < calls.length ; i++ ) {
+      var c = calls[i];
+      ast = FSASTExprCall.create({
+        expr: ast,
+        params: c[1].map(function(x) { return x[1]; })
+      });
+    }
+
+    return ast;
+  },
+
+
+  // field.accessors and array[indexes].
+  expr16: function(xs) {
+    // expr17 ws [ dot-and-index-chain ]
+    // 0      1  2
+    // the chain is either ['.' ws identifier] or ['[' ws expr ws ']']
+    var ast = xs[0];
+    var list = xs[2];
+
+    // If there are entries in the list, we build nested ASTs, left-associative.
+    // If the list is empty, we'll just end up returning ast, which is correct.
+    for ( var i = 0 ; i < list.length ; i++ ) {
+      var a = list[i];
+      ast = (a[0] === '.' ? FSASTExprDot : FSASTExprIndex).create({
+        expr: ast, selector: a[2]
+      });
+    }
+    return ast;
+  },
+
+  // Primitive or bracketed subexpr.
+  expr17: function(xs) {
+    // AST: identifier
+    // ( expr )
+    // 0 1 2
+    if ( FSASTExpr.isInstance(xs) ) return xs;
+    return xs[1];
+  },
+
+  // TODO: Numeric literals.
+  expr18: function(xs) {
+    return FSASTExprVar.create({ name: xs });
   }
-
-  /*
-  tag: function(xs) {
-    // < label ws attributes ws > children </ label >
-    // 0 1     2  3          4  5 6        7  8     9
-
-    // Mismatched XML tags
-    // TODO: We should be able to set the error message on the ps here.
-    if ( xs[1] != xs[8] ) return undefined;
-
-    var obj = { tag: xs[1], attrs: {}, children: xs[6] };
-
-    xs[3].forEach(function(attr) { obj.attrs[attr[0]] = attr[2]; });
-
-    return obj;
-  }
-  */
 });
 
-console.log(util.inspect(FSParser.parseString('foo'), { depth: null }));
+console.log(util.inspect(FSParser.parseString('foo + bar'), { depth: null }));
 //console.log(util.inspect(FSParser.parseString('   '), { depth: null }));
 
