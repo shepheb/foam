@@ -104,3 +104,36 @@ FOAModel({
   properties: ['expr', 'op']
 });
 
+
+FOAModel({
+  name: 'FSASTStmt',
+  extendsModel: 'FSAST',
+  label: 'Base class for statement nodes.'
+});
+
+FOAModel({
+  name: 'FSASTStmtIf',
+  extendsModel: 'FSASTStmt',
+  properties: ['condition', 'ifBlock', 'elseBlock',
+    { name: 'elseifs', factory: function() { return []; } }
+  ]
+});
+
+FOAModel({
+  name: 'FSASTStmtFor',
+  extendsModel: 'FSASTStmt',
+  properties: ['initializer', 'condition', 'increment', 'block']
+});
+
+FOAModel({
+  name: 'FSASTStmtAsst',
+  extendsModel: 'FSASTStmt',
+  properties: ['lvalue', 'rvalue', 'op']
+});
+
+FOAModel({
+  name: 'FSASTStmtExpr',
+  extendsModel: 'FSASTStmt',
+  properties: ['expr']
+});
+

@@ -10,8 +10,9 @@ DEBUG_PARSE = true;
 // All the binary ops have this form:
 function binOp(prec) {
   // expr  ws
-  // expr1 ws op ws expr2
-  // 0     1  2  3  4
+  // expr1 ws [op ws expr2]
+  // 0     1  2
+  //           0  1  2
   // NB: The precedence here is backwards.
   // We need to correct it. There are four cases:
   // 1. Single term - just return it
@@ -24,11 +25,12 @@ function binOp(prec) {
   // do left-recursion.
 
   return function(xs) {
-    if ( xs.length <= 2 ) return xs[0]; // Case 1.
+    if ( FSASTExpr.isInstance(xs) ) return xs;
+    if ( ! xs[2] ) return xs[0]; // Case 1.
 
     var lhs = xs[0];
-    var rhs = xs[4];
-    var op  = xs[2];
+    var rhs = xs[2][2];
+    var op  = xs[2][0];
 
     var child = rhs;
     var parent;
@@ -67,7 +69,7 @@ var FSParser = {
   //  repeat(sym('toplevel'), sym('whitespace'), 1 /* min */),
   //  sym('whitespace')),
 
-  START: sym('expr'),
+  START: sym('stmtIf'),
 
   toplevel: alt(
     sym('model'),
@@ -117,6 +119,101 @@ var FSParser = {
     seq(literal('/*'), repeat0(not(literal('*/'))))
   )),
 
+
+  // Statements
+  stmt: alt(
+    sym('stmtIf'),
+    sym('stmtFor'),
+    sym('stmtWhile'),
+    sym('stmtAsst'),
+    seq(sym('expr'), sym('whitespace'), ';')
+  ),
+
+  block: seq(
+    '{',
+    sym('whitespace'),
+    repeat(sym('stmt'), sym('whitespace')),
+    sym('whitespace'),
+    '}'
+  ),
+
+  // TODO: one-line if?
+  ifcore: seq(
+    'if',
+    sym('whitespace'),
+    '(',
+    sym('whitespace'),
+    sym('expr'),
+    sym('whitespace'),
+    ')',
+    sym('whitespace'),
+    sym('block')
+  ),
+
+  stmtIf: seq(
+    sym('ifcore'),
+    sym('whitespace'),
+    repeat(
+      seq(
+        'else',
+        sym('whitespace'),
+        sym('ifcore')
+      ),
+      sym('whitespace')
+    ),
+    sym('whitespace'),
+    optional(seq(
+      'else',
+      sym('whitespace'),
+      sym('block')
+    ))
+  ),
+
+  // TODO: Smarter for loops
+  // TODO: One-liners?
+  stmtFor: seq(
+    'for',
+    sym('whitespace'),
+    '(',
+    sym('whitespace'),
+    sym('vardecl'),
+    sym('whitespace'),
+    ';',
+    sym('whitespace'),
+    sym('expr'),
+    sym('whitespace'),
+    ';',
+    sym('whitespace'),
+    sym('expr'),
+    sym('whitespace'),
+    ')',
+    sym('whitespace'),
+    sym('block')
+  ),
+
+  stmtWhile: seq(
+    'while',
+    sym('whitespace'),
+    '(',
+    sym('whitespace'),
+    sym('expr'),
+    sym('whitespace'),
+    ')',
+    sym('whitespace'),
+    sym('block')
+  ),
+
+  stmtAsst: seq(
+    sym('expr'), // Only a few rare types of expressions are allowed over here.
+    sym('whitespace'),
+    optional(sym('inlineop')),
+    '=',
+    sym('whitespace'),
+    sym('expr'),
+    sym('whitespace'),
+    ';'
+  ),
+  inlineop: alt('+', '-', '*', '/', '%', '<<', '>>', '>>>', '||', '|', '&', '^'),
 
   // Expressions!
   // We work from loosest binding to tightest.
@@ -205,11 +302,11 @@ var FSParser = {
   ),
 
   expr13: alt(
-    seq('!', sym('whitespace'), sym('expr14')),
+    seq('!', sym('whitespace'), sym('expr13')),
     sym('expr14')
   ),
 
-  expr14: alt(
+  expr14: seq(
     sym('expr15'),
     sym('whitespace'),
     optional(alt('--', '++'))
@@ -298,6 +395,76 @@ FSParser.addActions({
     return xs.map(function(t) { return t[1]; });
   },
 
+  // Returns an FSASTStmt-family value.
+  stmt: function(xs) {
+    if ( FSASTStmt.isInstance(xs) ) return xs;
+    // Otherwise: expr ws ;
+    //            0    1  2
+    return FSASTStmtExpr.create({ expr: xs[0] });
+  },
+
+  // Returns a [FSASTStmt].
+  block: function(xs) {
+    // { ws [stmt] ws }
+    // 0 1  2      3  4
+    return xs[2];
+  },
+
+  // Returns a FSASTStmtIf.
+  ifcore: function(xs) {
+    // if ws ( ws expr ws ) ws block
+    // 0  1  2 3  4    5  6 7  8
+    return FSASTStmtIf.create({
+      condition: xs[4],
+      ifBlock: xs[8]
+    });
+  },
+
+  // Returns a FSASTStmtIf that holds the complete story.
+  stmtIf: function(xs) {
+    // ifcore ws [elseif] ws [else, ws, block]
+    // 0      1  2        3  4 0    1   2
+    // Add the elseifs if present
+    console.log(xs, '\n\n\n');
+    if ( xs[2] && xs[2].length ) xs[0].elseifs = xs[2].map(function(ys){ return ys[2]; });
+    // And the else block if present
+    if ( xs[4] && xs[4].length ) xs[0].elseBlock = xs[4][2];
+    return xs[0];
+  },
+
+  // Returns a FSASTStmtFor.
+  stmtFor: function(xs) {
+    // for ws ( ws initializer ws ; ws condition ws ; ws increment ws ) ws block
+    // 0   1  2 3  4           5  6 7  8         9  1011 12        13 1415 16
+    return FSASTStmtFor.create({
+      initializer: xs[4],
+      condition: xs[8],
+      increment: xs[12],
+      block: xs[16]
+    });
+  },
+
+  // Returns a FSASTStmtWhile.
+  stmtWhile: function(xs) {
+    // while ws ( ws cond ws ) ws block
+    // 0     1  2 3  4    5  6 7  8
+    return FSASTStmtWhile.create({
+      condition: xs[4],
+      block: xs[8]
+    });
+  },
+
+  // Returns a FSASTStmtAsst.
+  stmtAsst: function(xs) {
+    // lvalue ws [inlineop] = ws rvalue ws ;
+    // 0      1  2 0        3 4  5      6  7
+    return FSASTStmtAsst.create({
+      lvalue: xs[0],
+      rvalue: xs[5],
+      op: xs[2] && xs[2].length ? xs[2][0] : ''
+    });
+  },
+
   // Logical ||
   expr: binOp(1),
   // Logical &&
@@ -316,7 +483,6 @@ FSParser.addActions({
   expr8: binOp(8),
   // Addition operations
   expr9: binOp(9),
-
   // Multiplicative operations
   expr10: binOp(10),
 
@@ -347,7 +513,6 @@ FSParser.addActions({
     // '!' ws expr
     // expr
     // 0   1  2
-    console.log('XXXXX:' + xs);
     if ( FSASTExpr.isInstance(xs) ) return xs;
     return FSASTExprBooleanNegate.create({
       expr: xs[2]
@@ -357,8 +522,9 @@ FSParser.addActions({
   // postfix -- and ++
   expr14: function(xs) {
     // expr ws ('--' or '++')
+    if ( FSASTExpr.isInstance(xs) ) return xs;
     var inner = xs[0];
-    if ( xs.length > 2 ) {
+    if ( xs[2] ) {
       return FSASTExprPostfix.create({
         op: xs[2],
         expr: inner
@@ -373,7 +539,7 @@ FSParser.addActions({
     // 0       1  2
     // calls: '(' [[ws, expr]] ')'
     //        0   1             2
-    if 
+    if ( FSASTExpr.isInstance(xs) ) return xs;
     var ast = xs[0];
     var calls = xs[2];
 
@@ -394,13 +560,14 @@ FSParser.addActions({
     // expr17 ws [ dot-and-index-chain ]
     // 0      1  2
     // the chain is either ['.' ws identifier] or ['[' ws expr ws ']']
+    if ( FSASTExpr.isInstance(xs) ) return xs;
     var ast = xs[0];
     var list = xs[2];
 
     // If there are entries in the list, we build nested ASTs, left-associative.
     // If the list is empty, we'll just end up returning ast, which is correct.
     for ( var i = 0 ; i < list.length ; i++ ) {
-      var a = list[i];
+      var a = list[i][0];
       ast = (a[0] === '.' ? FSASTExprDot : FSASTExprIndex).create({
         expr: ast, selector: a[2]
       });
@@ -423,6 +590,7 @@ FSParser.addActions({
   }
 });
 
-console.log(util.inspect(FSParser.parseString('foo + bar'), { depth: null }));
+// START HERE: Parsing of for and while loops needs exercising.
+console.log(util.inspect(FSParser.parseString('if(c==d){ if (a) { b(); } else { c-=d; } }'), { depth: null }));
 //console.log(util.inspect(FSParser.parseString('   '), { depth: null }));
 
