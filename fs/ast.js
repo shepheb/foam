@@ -126,6 +126,12 @@ FOAModel({
 });
 
 FOAModel({
+  name: 'FSASTStmtWhile',
+  extendsModel: 'FSASTStmt',
+  properties: ['condition', 'block']
+});
+
+FOAModel({
   name: 'FSASTStmtAsst',
   extendsModel: 'FSASTStmt',
   properties: ['lvalue', 'rvalue', 'op']

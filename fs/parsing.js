@@ -69,7 +69,7 @@ var FSParser = {
   //  repeat(sym('toplevel'), sym('whitespace'), 1 /* min */),
   //  sym('whitespace')),
 
-  START: sym('stmtIf'),
+  START: sym('stmtFor'),
 
   toplevel: alt(
     sym('model'),
@@ -177,8 +177,6 @@ var FSParser = {
     '(',
     sym('whitespace'),
     sym('vardecl'),
-    sym('whitespace'),
-    ';',
     sym('whitespace'),
     sym('expr'),
     sym('whitespace'),
@@ -434,13 +432,13 @@ FSParser.addActions({
 
   // Returns a FSASTStmtFor.
   stmtFor: function(xs) {
-    // for ws ( ws initializer ws ; ws condition ws ; ws increment ws ) ws block
-    // 0   1  2 3  4           5  6 7  8         9  1011 12        13 1415 16
+    // for ws ( ws initializer ws condition ws ; ws increment ws ) ws block
+    // 0   1  2 3  4           5  6         7  8 9  10        11 1213 14
     return FSASTStmtFor.create({
       initializer: xs[4],
-      condition: xs[8],
-      increment: xs[12],
-      block: xs[16]
+      condition: xs[6],
+      increment: xs[10],
+      block: xs[14]
     });
   },
 
@@ -590,7 +588,6 @@ FSParser.addActions({
   }
 });
 
-// START HERE: Parsing of for and while loops needs exercising.
-console.log(util.inspect(FSParser.parseString('if(c==d){ if (a) { b(); } else { c-=d; } }'), { depth: null }));
+console.log(util.inspect(FSParser.parseString('for(int i = j; i < foo.length; i++) { print(foo[i]); }'), { depth: null }));
 //console.log(util.inspect(FSParser.parseString('   '), { depth: null }));
 
