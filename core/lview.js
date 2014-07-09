@@ -7,7 +7,7 @@
 // These elements can be abstract LViews like RowLayout and ColumnLayout,
 // which have no existence in the DOM, or they can be actual DOM elements,
 // like the TextFieldLView or BackgroundLView (for testing).
-FOAModel({
+MODEL({
   name: 'LView',
   label: 'LView',
 
@@ -112,7 +112,7 @@ FOAModel({
   }
 });
 
-FOAModel({
+MODEL({
   name: 'DOMLView',
   extendsModel: 'LView',
   help: 'Abstract base class for LViews which correspond with DOM nodes',
@@ -146,7 +146,7 @@ FOAModel({
   }
 });
 
-FOAModel({
+MODEL({
   name: 'BackgroundLView',
   extendsModel: 'DOMLView',
   help: 'A testing LView. Creates a <div> with the given background color.',
@@ -166,7 +166,7 @@ FOAModel({
   }
 });
 
-FOAModel({
+MODEL({
   name: 'ColumnLView',
   extendsModel: 'LView',
   help: 'A layout LView, which places its children adjacent to each other ' +
@@ -204,7 +204,7 @@ FOAModel({
   }
 });
 
-FOAModel({
+MODEL({
   name: 'RowLView',
   extendsModel: 'LView',
   help: 'A layout LView whose children are placed in a row.',
