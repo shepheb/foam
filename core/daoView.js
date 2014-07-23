@@ -566,7 +566,7 @@ MODEL({
   templates: [
     function toHTML() {/*
       <div>
-        <div id="%%id" style="height:<%= this.height %>px;overflow:hidden;position:relative">
+        <div id="%%id" style="overflow:hidden;position:relative">
           <%
             var verticalScrollbar = FOAM.lookup(this.verticalScrollbarView).create({
                 scrollTop$ : this.scrollTop$,
@@ -678,8 +678,7 @@ MODEL({
       }.bind(this));
     },
     initHTML: function() {
-      console.log('initing', this.hidden, this.$);
-      //debugger;
+      this.$.style.height = this.height ? this.height + 'px' : '100%';
       this.SUPER();
       this.scroll();
       this.$.addEventListener('wheel', this.onWheel);

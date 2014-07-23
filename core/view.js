@@ -4103,7 +4103,7 @@ MODEL({
     initHTML: function() {
       this.SUPER();
 
-      if ( ! this.$ ) debugger;
+      if ( ! this.$ ) return;
       this.$.addEventListener('mouseover', this.onMouseEnter);
       this.$.addEventListener('mouseout', this.onMouseOut);
       this.$.addEventListener('click', this.onTrackClick);
