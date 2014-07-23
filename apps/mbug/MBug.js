@@ -75,6 +75,7 @@ MODEL({
     init: function() {
       this.SUPER();
       this.X.touchManager = this.X.TouchManager.create({});
+      this.X.gestureManager = this.X.GestureManager.create({});
     },
     toHTML: function() { return this.stack.toHTML(); },
     projectContext: function() {
@@ -168,10 +169,9 @@ MODEL({
             return ViewChoice.create({
               view: PredicatedView.create({
                 predicate: QueryParser.parseString(filter[0]) || TRUE,
-                view: DAOListView.create({
-                  mode: 'read-only',
-                  rowView: 'IssueCitationView',
-                  chunkSize: 15
+                view: ScrollView.create({
+                  model: 'QIssue',
+                  rowView: 'IssueCitationView'
                 })
               }),
 
