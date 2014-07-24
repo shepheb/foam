@@ -710,7 +710,7 @@ MODEL({
     {
       name: 'verticalScrollMove',
       code: function(dy, ty, y) {
-        this.scrollTop += dy;
+        this.scrollTop -= dy;
       }
     },
     {
