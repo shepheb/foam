@@ -743,10 +743,15 @@ MODEL({
     {
       name: 'data',
       postSet: function(old, nu) {
-        this.view.data = data;
+        if ( this.view ) this.view.data = data;
       }
     },
-    'view',
+    {
+      name: 'view',
+      postSet: function(old, nu) {
+        if ( nu ) nu.data = this.data;
+      }
+    },
     {
       name: 'y',
       postSet: function(old, nu) {
@@ -768,9 +773,12 @@ MODEL({
       help: 'The distance in pixels to render outside the viewport'
     },
     {
-      name: 'height',
+      name: 'scrollHeight',
       dynamicValue: function() {
-        return this.count * this.rowHeight;
+        return this.$ && this.count * this.rowHeight;
+      },
+      postSet: function(old, nu) {
+        if ( this.$ ) this.scroller$().style.height = nu + 'px';
       }
     },
     {
@@ -790,12 +798,13 @@ MODEL({
       name: 'scrollTop',
       preSet: function(old, nu) {
         if ( nu < 0 ) return 0;
-        if ( nu > this.height - this.viewportHeight )
-          return this.height - this.viewportHeight;
+        if ( nu > this.scrollHeight - this.viewportHeight )
+          return this.scrollHeight - this.viewportHeight;
         return nu;
       },
       postSet: function(old, nu) {
-        this.$.scrollTop = nu;
+        console.log('scrollTop = ' + nu);
+        this.scroller$().style.webkitTransform = 'translate3d(0px, -' + nu + 'px, 0px)';
       }
     },
     {
@@ -815,17 +824,26 @@ MODEL({
       name: 'visibleRows',
       factory: function() { return []; }
     },
+    {
+      name: 'scrollID',
+      factory: function() { return this.nextID(); }
+    }
   ],
 
   methods: {
     initHTML: function() {
       this.SUPER();
+      if ( ! this.$.style.height )
+        this.$.style.height = '100%';
       this.X.gestureManager.install(this.X.GestureTarget.create({
         element: this.$,
         handler: this,
         gesture: 'verticalScroll'
       }));
       this.onDAOUpdate();
+    },
+    scroller$: function() {
+      return this.X.document.getElementById(this.scrollID);
     },
     update: function() {
       if ( ! this.$ ) return;
@@ -840,11 +858,13 @@ MODEL({
         var limit = (roomAbove + 3 * this.runway + this.viewportHeight) /
             this.rowHeight;
         var self = this;
+        console.log('initial fetch', skip, limit);
         this.dao.skip(skip).limit(limit).select([])(function(a) {
           // a contains invisible above, runway above, viewport, runway below, and invisible below.
           // The invisible portions go in the loadedAbove/Below arrays as a zipper.
           // The visible portions get loaded into visibleRows.
-          var invisibleAbove = Math.floor(Math.min(0, (roomAbove - self.runway) / self.rowHeight));
+          var invisibleAbove = Math.floor(Math.max(0, (roomAbove - self.runway) / self.rowHeight));
+          console.log('invisibleAbove', invisibleAbove);
           for ( var i = 0 ; i < invisibleAbove ; i++ ) {
             self.loadedAbove.push(a.shift());
           }
@@ -852,6 +872,7 @@ MODEL({
           // Note that the above removed the invisible portions from the array.
           // Now the visible portion is two runways and the viewport.
           var visibleCount = Math.ceil( (self.viewportHeight + 2 * self.runway) / self.rowHeight );
+          console.log('visibleCount', visibleCount);
           var rowView = FOAM.lookup(self.rowView);
           for ( i = 0 ; i < visibleCount ; i++ ) {
             var r = a.shift();
@@ -864,6 +885,7 @@ MODEL({
 
           // Finally, push the remaining rows into loadedBelow.
           // They need to be reversed.
+          console.log('loadedBelow', a.length);
           while ( a.length ) {
             self.loadedBelow.push(a.pop());
           }
@@ -878,7 +900,7 @@ MODEL({
             html.push(r.view.toHTML());
             html.push('</div>');
           });
-          self.$.innerHTML = html.join('');
+          self.scroller$().innerHTML = html.join('');
 
           self.X.window.setTimeout(function() {
             self.visibleRows.forEach(function(r, i) {
@@ -913,7 +935,7 @@ MODEL({
           }, 0);
         }
       }
-      else if ( this.visibleRows[this.visibleRows.length-1].y + this.rowHeight < Math.min(this.scrolTop + this.runway + this.viewportHeight, this.height) ) {
+      else if ( this.visibleRows[this.visibleRows.length-1].y + this.rowHeight < Math.min(this.scrolTop + this.runway + this.viewportHeight, this.scrollHeight) ) {
         // Not enough runway below.
         // We reuse the top-most entry and move it to the top.
         var moving = this.visibleRows.shift();
@@ -969,10 +991,14 @@ MODEL({
     function toHTML() {/*
       <div>
         <div id="%%id" style="overflow:hidden;position:relative">
+          <div id="%%scrollID" style="position:absolute;width:100%">
+            <div style="position:relative;width:100%;height:100%">
+            </div>
+          </div>
           <%
             //var verticalScrollbar = FOAM.lookup(this.verticalScrollbarView).create({
             //    scrollTop$ : this.scrollTop$,
-            //    height$ : this.height$,
+            //    height$ : this.viewportHeight$,
             //    scrollHeight$ : this.scrollHeight$,
             //});
 
