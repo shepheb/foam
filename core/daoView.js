@@ -743,7 +743,12 @@ MODEL({
     {
       name: 'data',
       postSet: function(old, nu) {
-        if ( this.view ) this.view.data = nu;
+        console.log('new data', nu.email);
+        if ( this.view ) {
+          this.view.data = nu;
+          this.view.$.outerHTML = this.view.toHTML();
+          this.view.initHTML();
+        }
       }
     },
     {
@@ -846,8 +851,21 @@ MODEL({
       this.SUPER();
       if ( ! this.$.style.height ) {
         this.$.style.height = '100%';
-        console.log('updating height', this.$);
+        console.log('updating height', this.$, this.$.offsetHeight);
       }
+
+      // Add scrollbar.
+      /*
+      var verticalScrollbar = FOAM.lookup(this.verticalScrollbarView).create({
+          height: this.viewportHeight,
+          scrollTop$ : this.scrollTop$,
+          scrollHeight$ : this.scrollHeight$,
+      });
+      //Events.follow(this.viewportHeight$, verticalScrollbar.height$);
+      this.$.innerHTML += verticalScrollbar.toHTML();
+      this.X.setTimeout(function() { verticalScrollbar.initHTML(); }, 0);
+      */
+
       this.X.gestureManager.install(this.X.GestureTarget.create({
         element: this.$,
         handler: this,
@@ -868,8 +886,7 @@ MODEL({
         var skip = Math.max((this.scrollTop - 3 * this.runway) / this.rowHeight, 0);
         this.loadedIndex = skip;
         var roomAbove = Math.min(this.scrollTop, 3 * this.runway);
-        debugger;
-        console.log('vph', this.viewportHeight);
+        console.log('vph', this.viewportHeight, roomAbove);
         var limit = Math.ceil((roomAbove + 3 * this.runway + this.viewportHeight) /
             this.rowHeight);
         var self = this;
@@ -889,11 +906,11 @@ MODEL({
           var visibleCount = Math.ceil( (self.viewportHeight + 2 * self.runway) / self.rowHeight ) + 1;
           // +1 above to make sure there's no feedback where elements
           // get repeatedly shuffled between top and bottom.
-          console.log('visibleCount', visibleCount);
+          console.log('visibleCount', visibleCount, a.length);
           var rowView = FOAM.lookup(self.rowView);
           for ( i = 0 ; i < visibleCount ; i++ ) {
             var r = a.shift();
-            var v = rowView.create({ data: r });
+            var v = rowView.create({ model: r.model_, data: r });
             self.visibleRows.push(ScrollViewRow.create({
               data: r,
               view: v
@@ -1025,14 +1042,6 @@ MODEL({
             <div style="position:relative;width:100%;height:100%">
             </div>
           </div>
-          <%
-            var verticalScrollbar = FOAM.lookup(this.verticalScrollbarView).create({
-                scrollTop$ : this.scrollTop$,
-                scrollHeight$ : this.scrollHeight$,
-            });
-            Events.follow(this.viewportHeight$, verticalScrollbar.height$);
-            out(verticalScrollbar);
-          %>
         </div>
       </div>
     */},

@@ -62,6 +62,10 @@ MODEL({
       name: 'avatarView',
       defaultValue: 'AvatarView'
     },
+    {
+      name: 'mode',
+      defaultValue: 'read-only'
+    }
   ],
 
   /* FIXME: the following doesn't work at the moment.
@@ -85,7 +89,7 @@ MODEL({
           out(avatar.toHTML());
         %>
         <div style="position:relative;top:20px">
-          <span>%%data.first <b>%%data.last</b></span>
+          <span>$$first <b>$$last</b></span>
         </div>
         <br>
         <div style="font-family: 'Roboto', sans-serif;
@@ -94,7 +98,7 @@ MODEL({
                     text-align: center;
                     position: relative;
                     top: -25px;">
-          (<span>%%data.email</span>)
+          (<span>$$email</span>)
         </div>
       </div>
     */}
