@@ -278,11 +278,17 @@ MODEL({
     function CSS() {/*
       body {
         margin: 0px;
-        font-family: 'Roboto', sans-serif;
-        font-size: inherit;
-
         background-color: #e0e0e0;
         position: relative;
+      }
+      .docbrowser {
+        font-family: 'Roboto', sans-serif;
+        font-size: initial;
+        font-weight: 300;
+      }
+
+      h1,h2,h3,h4,h5 {
+        font-weight: bolder;
       }
 
       .docbrowser-header {
@@ -313,13 +319,11 @@ MODEL({
       }
 
       .docbrowser-title {
-        font-weight: lighter;
         font-size: 250%;
         margin-top: 20px;
       }
       .docbrowser-tabs {
         font-size: 120%;
-        font-weight: lighter;
         margin-top: 40px;
         margin-right: 20px;
       }
@@ -417,22 +421,19 @@ MODEL({
       div.inherited {
         color: #666666;
       }
-			
-			p.browse-list-entry {
-				font-size:100%;
-				font-weight: bold;
-				line-height: 150%
-			}
-			
-      span.docLink {
+
+      p.browse-list-entry {
+        font-size:100%;
+      }
+
+      .docLink {
         cursor: pointer;
-				color: #000077;
+        color: #000077;
         border-bottom: 0.1em dotted #999;
       }
 
-      span.docLinkNoDocumentation {
+      .docLinkNoDocumentation {
         color: #770000;
-        
       }
 
       .light {
@@ -440,7 +441,7 @@ MODEL({
       }
     */},
     function toHTML() {/*
-      <div id="<%= this.id %>">
+      <div id="<%= this.id %>" class="docbrowser">
         <div class="docbrowser-header">
           <div class="docbrowser-header-inner">
             <div class="docbrowser-header-flex-container">
