@@ -179,6 +179,7 @@ MODEL({
                 }).datasets);
               });
         });
+        return fut.get;
       }
     }
   ],
@@ -253,11 +254,12 @@ MODEL({
       // (strong for ancestor queries, ie. those with key length > 1, eventual
       // otherwise.
       var keyPath = this.stringToKey(id);
-      var req = { keys: [keyPath] };
+      var req = { keys: [{ path: keyPath }] };
 
+      console.log(require('util').inspect(req, { depth: null }));
       aseq(this.datastore.withClientExecute('lookup', req))(function(res) {
         // TODO: Implement properly.
-        console.log('Response received', res);
+        console.log('Response received', require('util').inspect(res, {depth: null}));
       });
     },
 
@@ -265,7 +267,8 @@ MODEL({
     stringToKey: function(id) {
       var keyParts = id.split('/');
       var keyPath = [];
-      for ( var i = 0 ; i < keyParts.length ; i += 2 ) {
+      // keyParts is, eg. ['', 'Foo', '123', 'Bar', '456'].
+      for ( var i = 1 ; i < keyParts.length ; i += 2 ) {
         keyPath.push({
           kind: keyParts[i],
           id: keyParts[i+1]
