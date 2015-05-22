@@ -23,6 +23,7 @@ CLASS({
     'foam.mlang.CannedQuery',
     'foam.tutorials.todo.Controller',
     'foam.tutorials.todo.model.Todo',
+    'foam.tutorials.todo.ui.TodoCitationView',
     'foam.ui.TextFieldView',
   ],
 
@@ -71,22 +72,40 @@ CLASS({
         this.newTodo = '';
       },
     },
+    {
+      name: 'className',
+      defaultValue: 'todo-app'
+    },
   ],
 
   templates: [
+    function CSS() {/*
+      .todo-app {
+      }
+      .menu {
+      }
+      .search {
+      }
+      .new-todo {
+      }
+      .todo-list {
+      }
+    */},
     function toHTML() {/*
       <div id="<%= this.id %>" <%= this.cssClassAttr() %>>
         <div class="menu">
           $$cannedQueryDAO
         </div>
-        <div class="search">
-          $$search{ placeholder: 'Search' }
-        </div>
-        <div class="new-todo">
-          $$newTodo{ updateMode: this.TextFieldView.ENTER_ONLY }
-        </div>
         <div class="main">
-          $$filteredDAO
+          <div class="search">
+            $$search{ placeholder: 'Search' }
+          </div>
+          <div class="new-todo">
+            $$newTodo{ updateMode: this.TextFieldView.ENTER_ONLY }
+          </div>
+          <div class="todo-list">
+            $$filteredDAO{ rowView: 'foam.tutorials.todo.ui.TodoCitationView' }
+          </div>
         </div>
       </div>
     */},
