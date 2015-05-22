@@ -23,6 +23,7 @@ CLASS({
     'foam.mlang.CannedQuery',
     'foam.tutorials.todo.Controller',
     'foam.tutorials.todo.model.Todo',
+    'foam.ui.TextFieldView',
   ],
 
   properties: [
@@ -63,6 +64,12 @@ CLASS({
         factory_: 'foam.ui.TextFieldView',
         placeholder: 'Create new todo',
       },
+      postSet: function(old, nu) {
+        nu = nu ? nu.trim() : '';
+        if ( ! nu ) return;
+        this.dao.put(this.Todo.create({ description: nu }));
+        this.newTodo = '';
+      },
     },
   ],
 
@@ -76,7 +83,7 @@ CLASS({
           $$search{ placeholder: 'Search' }
         </div>
         <div class="new-todo">
-          $$newTodo
+          $$newTodo{ updateMode: this.TextFieldView.ENTER_ONLY }
         </div>
         <div class="main">
           $$filteredDAO
