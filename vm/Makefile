@@ -1,4 +1,4 @@
-CFLAGS=-g -Iinclude -Imap/include
+CFLAGS=-g -Iinclude -std=gnu99
 
 default: vm.o
 
