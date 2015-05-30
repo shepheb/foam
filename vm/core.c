@@ -3,6 +3,9 @@
 
 #include <model.h>
 #include <map.h>
+#include <array.h>
+#include <scalar.h>
+#include <struct.h>
 
 /*
 Notional FOAM model specs for each are given.
@@ -60,15 +63,15 @@ object* rawInstance(object* model) {
   object* nu = (object*) malloc(sizeof(object));
   nu->uid = nextUID++;
   nu->model_ = model;
-  nu->data = map_new();
+  nu->data = array_new();
   return nu;
 }
 
 object* rawModel(object* model, unsigned char* name) {
   object* nu = rawInstance(model);
   object* nameString = rawInstance(modelString);
-  map_insert(nameString->data, map_hash("value"), name);
-  map_insert(nu->data, map_hash("name"), nameString);
+  array_insert(nameString->data, STRING_SLOT_RAW, name);
+  array_insert(nu->data, MODEL_SLOT_NAME, nameString);
 }
 
 void bootstrap(void) {
@@ -80,13 +83,13 @@ void bootstrap(void) {
 
   // Set Model's name.
   object* nameModel = rawInstance(modelString);
-  map_insert(nameModel->data, map_hash("value"), "Model");
-  map_insert(modelModel->data, map_hash("name"), nameModel);
+  array_insert(nameModel->data, STRING_SLOT_RAW, "Model");
+  array_insert(modelModel->data, MODEL_SLOT_NAME, nameModel);
 
   // And String's name.
   object* nameString = rawInstance(modelString);
-  map_insert(nameString->data, map_hash("value"), "String");
-  map_insert(modelString->data, map_hash("name"), nameString);
+  array_insert(nameString->data, STRING_SLOT_RAW, "String");
+  array_insert(modelString->data, MODEL_SLOT_NAME, nameString);
 
   // Now the basics are in place, so now spin up the others,
   // Feature, Model, and more.
