@@ -51,3 +51,24 @@ Feature into the model by adding a slot for it. Model.create, like any create(),
 is running install() on its features, setting up the instance. That instance is
 MyModel, and so Method.install() should copy the address of its code into a slot.
 
+Let's just think about creating an instance of an already-extant model.
+If it doesn't have the slot count cached, it walks the features once to collect
+a count of data slots needed. Then it walks them again, calling install with the
+Feature as the receiver and passing the argument map, context and instance.
+
+When creating a new Model, the position is similar. It walks the Features, here
+meaning the features of Model, (properties) and (methods) etc., asking how much
+space they need in the instance (the specific new Model). They answer based on
+how many of each of them there are.
+
+That raises an interesting point: it may not be known until the arguments are
+seen how many slots will be required. That might dent the whole concept of slots
+somewhat... FOAM/JS gets around this by just using JS objects (this.instance_)
+as the fundamental object. Is this a unique property to creating Models? If so,
+that sucks, and I shouldn't make models a special case.
+
+Alright, slots are not really workable here, then. I'm falling back on a pointer
+in each object to its instance data. That takes the form of a map, indexed by
+hashed strings. An efficient implementation of this is going to be important,
+but optimizing it heavily can wait.
+
