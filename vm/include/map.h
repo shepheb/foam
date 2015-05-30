@@ -20,4 +20,6 @@ void  map_insert(map* self, uint32_t key, void* value);
 void* map_lookup(map* self, uint32_t key);
 void* map_delete(map* self, uint32_t key);
 
+uint32_t map_hash(unsigned char* str);
+
 #endif // MAP_H
