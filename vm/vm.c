@@ -21,13 +21,13 @@
 // but since neither is yet written, nothing more can be said here.
 
 
-void vm_push(vm_state *st, void* value) {
+void vm_push(vm_state *st, object* value) {
   st->stack[++(st->sp)] = value;
 }
-void* vm_peek(vm_state *st) {
+object* vm_peek(vm_state *st) {
   return st->stack[st->sp];
 }
-void* vm_pop(vm_state *st) {
+object* vm_pop(vm_state *st) {
   return st->stack[(st->sp)--];
 }
 
@@ -54,14 +54,14 @@ OPCODE(DUP) {
 }
 
 OPCODE(SWAP) {
-  void* a = vm_pop(st);
-  void* b = vm_pop(st);
+  object* a = vm_pop(st);
+  object* b = vm_pop(st);
   vm_push(st, a);
   vm_push(st, b);
 }
 
 OPCODE(PICK) {
-  void* value = st->stack[st->sp - arg];
+  object* value = st->stack[st->sp - arg];
   vm_push(st, value);
 }
 
@@ -74,7 +74,7 @@ OPCODE(SELF) {
 }
 
 OPCODE(SEND) {
-  object* receiver = (object*) vm_pop(st);
+  object* receiver = vm_pop(st);
   uintptr_t code = ((uintptr_t*)receiver->model_)[arg];
   if (code & PTR_TAG_MASK_BYTECODE) {
     // The code is written in bytecode; set up a VM call for it.
@@ -87,8 +87,8 @@ OPCODE(SEND) {
   } else {
     // This is native C code. Call it directly.
     // This cast is one of the ugliest things I've ever written.
-    void (*realcode)(vm_state*) = (void(*)(vm_state*)) PTR_CLEAR_TAGS(code);
-    (*realcode)(st);
+    void (*realcode)(vm_state*, object*) = (void(*)(vm_state*, object*)) PTR_CLEAR_TAGS(code);
+    (*realcode)(st, receiver);
   }
 }
 

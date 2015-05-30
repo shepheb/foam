@@ -81,11 +81,30 @@ void* map_delete(map* self, uint32_t key) {
 }
 
 
+map* map_new(void) {
+  map* self = (map*) malloc(sizeof(map));
+  self->head = NULL;
+  return self;
+}
+
+void map_destroy(map* self) {
+  node* n = self->head;
+  while (n != NULL) {
+    node* next = n->next;
+    free(n);
+    n = next;
+  }
+  free(self);
+}
+
+
+
+// TODO(braden): Truncating this to be 24 bits.
 uint32_t map_hash(unsigned char* str) {
   uint32_t hash = 5381;
   int c;
   while (c = *str++)
     hash = ((hash << 5) + hash) + c;
 
-  return hash;
+  return hash & 0x00ffffff;
 }

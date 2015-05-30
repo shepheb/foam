@@ -15,8 +15,8 @@ typedef struct _vm_call {
 // Represents the state of one thread of VM execution. Contains its own stack,
 // sp, and return stack.
 typedef struct _vm_state {
-  void* stack[1022];
-  int sp;        // Indexes into the stack above. Full-ascending, from 0.
+  object* stack[1022];
+  unsigned int sp;        // Indexes into the stack above. Full-ascending, from 0.
   vm_call* call; // Points at the current call's activation record.
 } vm_state;
 
