@@ -1,8 +1,9 @@
+CFLAGS=-g -Iinclude -Imap/include
 
 default: vm.o
 
-vm.o: include/* vm.c
-	gcc -g -c -Iinclude vm.c
+%.o: %.c include/*
+	gcc $(CFLAGS) -o $@ -c $<
 
 clean:
 	rm -rf *.o vm
