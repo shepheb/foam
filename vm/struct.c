@@ -68,6 +68,21 @@ void bootstrap_array(object* modelArray) {
   //
   // I think that will work, but I'm tired enough that I can't piece it together
   // right now.
+  //
+  // Actually, better idea. Write array_append, which uses the current length.
+  // Then it doesn't matter how many entries were added by Model.create, I just
+  // put mine after. That should work out neatly.
+  //
+  // Also to think about: In this slot-driven world, how does getFeature() and
+  // dynamic calls work? (First thought: getFeature does the same scan by name
+  // as always. Dynamic calls do a getFeature, and on getting the Feature they
+  // look up its slot number and then follow a normal message send.
+  //
+  // Yet another thing to think about: Inheritance! That plays a part in all of
+  // this. Subclasses number their new slots starting after their parent class,
+  // that's straightforward enough. They can override methods and things by
+  // using the same slot number. How to handle SUPER (parallel opcode to SELF,
+  // I think, but what does it actually do?)
 }
 
 /*
