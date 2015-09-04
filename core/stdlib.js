@@ -18,6 +18,18 @@
 var DEBUG  = DEBUG  || false;
 var _DOC_ = _DOC_ || false;
 
+// These flags control when Properties are enabled on a model.
+// If any flag is true, the property is enabled.
+// If flags are present, but none are true, the property is disabled.
+// If the property has no flags, then it is always enabled.
+//
+// All flags understood by the FOAM core are documented here:
+// - 'javascript' is always enabled.
+// - 'debug' marks debug-only properties; it replaces the old debug: true.
+// - 'documentation' marks properties only needed for rendering documentation.
+// - 'java' marks properties enabled when targeting desktop/server Java.
+// - 'android' marks properties enabled when targeting Java on Android.
+// - 'swift' marks properties enabled when targeting Swift on iOS.
 var FLAGS = FLAGS || {};
 FLAGS.javascript = true;
 FLAGS.debug = DEBUG;

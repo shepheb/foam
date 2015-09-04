@@ -171,6 +171,7 @@ var Property = {
       name: 'javaType',
       type: 'String',
       required: false,
+      labels: ['java', 'android'],
       defaultValueFn: function() { return this.type; },
       help: 'The java type that represents the type of this property.',
       documentation: function() { /* When running FOAM in a Java environment, specifies the Java type
