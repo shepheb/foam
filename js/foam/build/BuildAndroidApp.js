@@ -166,8 +166,12 @@ CLASS({
         if ( ! model ) {
           error("Could not load model: ", require);
         }
-        if ( model.package &&
-             self.blacklistModels.indexOf(model.id) == -1 ) {
+
+        if ( self.blacklistModels.indexOf(model.id) === -1 ) {
+          if ( ! model.package ) {
+            model.package = 'foam.core';
+          }
+
           models[model.id] = model;
         }
 
