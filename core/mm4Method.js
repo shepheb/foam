@@ -811,6 +811,7 @@ CLASS({
       displayHeight: 30,
       view: 'foam.ui.FunctionView',
       help: 'Javascript code to implement this method.',
+      labels: ['javascript'],
       postSet: function() {
         if ( ! _DOC_ ) return;
         // check for documentation in a multiline comment at the beginning of the code
@@ -862,6 +863,18 @@ CLASS({
       labels: ['debug']
     },
     {
+      model_: 'BooleanProperty',
+      name: 'abstract',
+      defaultValue: false,
+      documentation: 'True when the generated method should be abstract.',
+    },
+    {
+      model_: 'BooleanProperty',
+      name: 'javaAbstract',
+      defaultValueFn: function() { return this.abstract; },
+      documentation: 'Java-specific abstract flag.',
+    },
+    {
       model_: 'ArrayProperty',
       name: 'args',
       type: 'Array[Arg]',
@@ -904,14 +917,16 @@ CLASS({
   templates:[
     {
       model_: 'Template',
-
       name: 'javaSource',
       description: 'Java Source',
-      template: 'public <%= this.javaReturnType || "void" %> <%= this.name %>(' +
+      template: '<% if (this.javaCode || this.abstract) {%>' +
+        '  public <%= this.abstract ? "abstract " : " " %><%= this.javaReturnType || "void" %> <%= this.name %>(' +
         '<% for ( var i = 0 ; i < this.args.length ; i++ ) { var arg = this.args[i]; %>' +
         '<%= arg.javaSource() %><% if ( i < this.args.length-1 ) out(", ");%>' +
         '<% } %>' +
-        ')'
+        ')<% if (this.abstract) { %>;\u000a' +
+        '<% } else { %>' +
+        ' {\u000a   <%= this.javaCode %>\u000a  }<% } %>'
     },
     {
       model_: 'Template',

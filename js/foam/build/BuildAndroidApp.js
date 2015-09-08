@@ -168,10 +168,6 @@ CLASS({
         }
 
         if ( self.blacklistModels.indexOf(model.id) === -1 ) {
-          if ( ! model.package ) {
-            model.package = 'foam.core';
-          }
-
           models[model.id] = model;
         }
 
@@ -207,6 +203,9 @@ CLASS({
     // necessary directories will have been created.
     outputFilename_: function(pkg) {
       var parts = pkg.split('.');
+      if (parts.length == 1) {
+        parts = ['foam', 'core', pkg];
+      }
       var p = this.targetPath;
       while(parts.length > 1) {
         p = this.path.join(p, parts.shift());

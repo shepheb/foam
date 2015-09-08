@@ -264,6 +264,7 @@ var Property = {
     {
       name: 'subKey',
       type: 'EXPR',
+      javaType: 'Expression',
       displayWidth: 20,
       defaultValue: 'ID',
       help: 'The foreign key that this property references.',
@@ -289,6 +290,7 @@ var Property = {
     {
       name: 'required',
       type: 'Boolean',
+      javaType: 'boolean',
       view: 'foam.ui.BooleanView',
       defaultValue: true,
       help: 'Indicates if the property is a required field.',
@@ -300,6 +302,7 @@ var Property = {
     {
       name: 'hidden',
       type: 'Boolean',
+      javaType: 'boolean',
       view: 'foam.ui.BooleanView',
       defaultValue: false,
       help: 'Indicates if the property is hidden.',
@@ -312,6 +315,7 @@ var Property = {
     {
       name: 'transient',
       type: 'Boolean',
+      javaType: 'boolean',
       view: 'foam.ui.BooleanView',
       defaultValue: false,
       help: 'Indicates if the property is transient.',
@@ -354,6 +358,7 @@ var Property = {
       name: 'view',
       type: 'view',
       defaultValue: 'foam.ui.TextFieldView',
+      labels: ['javascript'],
       help: 'View component for the property.',
       documentation: function() { /*
         The default $$DOC{ref:'foam.ui.View'} to use when rendering the $$DOC{ref:'Property'}.
@@ -365,6 +370,7 @@ var Property = {
       name: 'detailView',
       type: 'view',
       defaultValueFn: function() { return this.view; },
+      labels: ['javascript'],
       help: 'View component for the property when rendering within a DetailView.',
       documentation: function() { /*
         The default $$DOC{ref:'foam.ui.View'} to use when rendering the $$DOC{ref:'Property'}
@@ -377,6 +383,7 @@ var Property = {
       name: 'citationView',
       type: 'view',
       defaultValueFn: function() { return this.view; },
+      labels: ['javascript'],
       help: 'View component for the property when rendering within a CitationView.',
       documentation: function() { /*
         The default $$DOC{ref:'foam.ui.View'} to use when rendering the $$DOC{ref:'Property'}
@@ -655,6 +662,7 @@ var Property = {
       name: 'prototag',
       label: 'Protobuf tag',
       type: 'Int',
+      javaType: 'int',
       required: false,
       help: 'The protobuf tag number for this field.',
       documentation: 'The protobuf tag number for this field.'
@@ -752,6 +760,7 @@ var Property = {
     {
       name: 'exclusive',
       type: 'Boolean',
+      javaType: 'boolean',
       view: 'foam.ui.BooleanView',
       defaultValue: true,
       help: 'Indicates if the property can only have a single value.',
@@ -762,6 +771,7 @@ var Property = {
     {
       name: 'memorable',
       type: 'Boolean',
+      javaType: 'boolean',
       help: 'True if this value should be included in a memento for this object.',
       defaultValue: false
     },

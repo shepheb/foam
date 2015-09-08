@@ -67,6 +67,7 @@ CLASS({
       name: 'prototag',
       label: 'Protobuf tag',
       type: 'Int',
+      javaType: 'int',
       required: false,
       help: 'The protobuf tag number for this field.'
     }
@@ -122,6 +123,7 @@ CLASS({
       name: 'prototag',
       label: 'Protobuf tag',
       type: 'Int',
+      javaType: 'int',
       required: false,
       help: 'The protobuf tag number for this field.'
     },
@@ -175,6 +177,7 @@ CLASS({
       name: 'prototag',
       label: 'Protobuf tag',
       type: 'Int',
+      javaType: 'int',
       required: false,
       help: 'The protobuf tag number for this field.'
     },
@@ -282,6 +285,7 @@ CLASS({
       name: 'prototag',
       label: 'Protobuf tag',
       type: 'Int',
+      javaType: 'int',
       required: false,
       help: 'The protobuf tag number for this field.'
     },
@@ -289,6 +293,7 @@ CLASS({
       name: 'minValue',
       label: 'Minimum Value',
       type: 'Int',
+      javaType: 'int',
       required: false,
       help: 'The minimum value this property accepts.'
     },
@@ -296,6 +301,7 @@ CLASS({
       name: 'maxValue',
       label: 'Maximum Value',
       type: 'Int',
+      javaType: 'int',
       required: false,
       help: 'The maximum value this property accepts.'
     },
@@ -367,6 +373,7 @@ CLASS({
       name: 'prototag',
       label: 'Protobuf tag',
       type: 'Int',
+      javaType: 'int',
       required: false,
       help: 'The protobuf tag number for this field.'
     }
@@ -577,6 +584,7 @@ CLASS({
       name: 'prototag',
       label: 'Protobuf tag',
       type: 'Int',
+      javaType: 'int',
       required: false,
       help: 'The protobuf tag number for this field.'
     }
@@ -609,6 +617,7 @@ CLASS({
     {
       name: 'subKey',
       type: 'EXPR',
+      javaType: 'Expression',
       displayWidth: 20,
       defaultValue: 'ID',
       help: 'The foreign key that this property references.'
@@ -632,6 +641,7 @@ CLASS({
       name: 'prototag',
       label: 'Protobuf tag',
       type: 'Int',
+      javaType: 'int',
       required: false,
       help: 'The protobuf tag number for this field.'
     }
@@ -710,6 +720,7 @@ CLASS({
       name: 'prototag',
       label: 'Protobuf tag',
       type: 'Int',
+      javaType: 'int',
       required: false,
       help: 'The protobuf tag number for this field.'
     },

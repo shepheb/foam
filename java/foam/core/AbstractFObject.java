@@ -18,9 +18,23 @@
 package foam.core;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AbstractFObject extends PubSubSource implements FObject, Serializable {
   private static final String[] EMPTY_PROPERTY_TOPIC = new String[] { "property", PubSubSource.ANY };
+
+  private static Map<String, String[]> __topics = new HashMap();
+  public static String[] getPropertyTopic(Property prop) {
+    String name = prop.getName();
+    if (__topics.containsKey(name)) {
+      return __topics.get(name);
+    } else {
+      String[] ret = new String[] { "property", name };
+      __topics.put(name, ret);
+      return ret;
+    }
+  }
 
   private boolean frozen = false;
 
@@ -137,7 +151,7 @@ public abstract class AbstractFObject extends PubSubSource implements FObject, S
     b.append("\"");
     for (Property p : model().getProperties()) {
       // TODO: do not output default values
-      if (p.isTransient()) continue;
+      if (p.getTransient()) continue;
       b.append(",");
       b.append(p.getName());
       b.append(":");
@@ -154,19 +168,19 @@ public abstract class AbstractFObject extends PubSubSource implements FObject, S
   }
 
 
-  public <T> void addPropertyChangeListener(Property<T> prop, PubSubListener<ValueChangeEvent<T>> listener) {
+  public <T> void addPropertyChangeListener(Property prop, PubSubListener<ValueChangeEvent<T>> listener) {
     if (isFrozen()) return;
     if (prop == null) subscribe(EMPTY_PROPERTY_TOPIC, listener);
-    else subscribe(prop.getPropertyTopic(), listener);
+    else subscribe(getPropertyTopic(prop), listener);
   }
 
-  public <T> void removePropertyChangeListener(Property<T> prop, PubSubListener<ValueChangeEvent<T>> listener) {
+  public <T> void removePropertyChangeListener(Property prop, PubSubListener<ValueChangeEvent<T>> listener) {
     if (prop == null) unsubscribe(EMPTY_PROPERTY_TOPIC, listener);
-    else unsubscribe(prop.getPropertyTopic(), listener);
+    else unsubscribe(getPropertyTopic(prop), listener);
   }
 
-  public <T> void firePropertyChange(Property<T> prop, T oldValue, T newValue) {
-    publish(prop.getPropertyTopic(), new PropertyChangeEvent<T>(this, prop, oldValue, newValue));
+  public <T> void firePropertyChange(Property prop, T oldValue, T newValue) {
+    publish(getPropertyTopic(prop), new PropertyChangeEvent<T>(this, prop, oldValue, newValue));
   }
 
 

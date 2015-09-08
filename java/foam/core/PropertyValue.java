@@ -7,9 +7,9 @@ package foam.core;
  */
 public class PropertyValue<T> implements Value<T> {
   private FObject obj;
-  private Property<T> prop;
+  private Property prop;
 
-  public PropertyValue(FObject obj, Property<T> prop) {
+  public PropertyValue(FObject obj, Property prop) {
     this.obj = obj;
     this.prop = prop;
   }
@@ -24,7 +24,7 @@ public class PropertyValue<T> implements Value<T> {
   public PropertyChangeSupport getTarget() {
     return obj;
   }
-  public Property<T> getProperty() {
+  public Property getProperty() {
     return prop;
   }
 

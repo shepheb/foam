@@ -27,31 +27,50 @@ CLASS({
     model. Add a template for each model, named by CONSTANTIZED_MODEL_ID.
   */},
 
+  properties: [
+    {
+      name: 'android',
+      documentation: 'Set to true when building for Android.',
+      defaultValue: false
+    },
+    {
+      name: 'flag',
+      defaultValueFn: function() { return this.android ? 'android' : 'java'; }
+    },
+  ],
+
   methods: [
     function prepModel_(model) {
       // Java doesn't support traits, so we'll copy traits into the model directly.
       model = model.deepClone();
 
-      var properties = model.properties;
+      var features = ['properties', 'methods'];
       for ( var i = 0; i < model.traits.length; i++ ) {
         var trait = this.X.lookup(model.traits[i]);
 
-        for ( var j = 0; j < trait.properties.length; j++ ) {
-          var traitProp = trait.properties[j];
+        for ( var fi = 0; fi < features.length; fi++) {
+          var feature = features[fi];
+          if (!trait[feature] || trait[feature].length === 0) continue;
+          for ( var j = 0; j < trait[feature].length; j++ ) {
+            var traitVal = trait[feature][j];
 
-          for ( var k = 0; k < properties.length; k++ ) {
-            var prop = properties[k];
-            if ( prop.name === traitProp.name ) {
-              properties[k] = traitProp.deepClone().copyFrom(prop);
-              break;
+            for ( var k = 0; k < model[feature].length; k++ ) {
+              var val = model[feature][k];
+              if ( val.name === traitVal.name ) {
+                model[feature][k] = traitVal.deepClone().copyFrom(val);
+                break;
+              }
             }
-          }
-          if ( k === properties.length ) {
-            properties.push(traitProp);
+            if ( k === model[feature].length ) {
+              model[feature].push(traitVal);
+            }
           }
         }
       }
-      model.properties = properties;
+
+      for (i = 0; i < features.length; i++) {
+        model[features[i]] = model[features[i]];
+      }
 
       return model;
     },
@@ -74,9 +93,8 @@ CLASS({
   }
   if ( GLOBAL[parentClassName] && GLOBAL[parentClassName].abstract )
     parentClassName = 'Abstract' + parentClassName;
-%><% if ( this.package ) { %>
-package <%= this.package %>;
-<% } %>
+%>
+package <%= this.package || 'foam.core' %>;
 import foam.core.*;
 import foam.dao.*;
 import java.util.Arrays;
@@ -86,7 +104,7 @@ public<%= this.abstract ? ' abstract' : '' %> class <%= className %>
     extends <%= parentClassName %> {
 <% for ( var key in this.properties ) {
   var prop = this.properties[key];
-  javaSource.propertySource.call(this, out, prop);
+  javaSource.propertySource.call(this, out, javaSource, prop);
 } %>
 <% if (this.relationships && this.relationships.length) {
   for ( var i = 0; i < this.relationships.length; i++) {
@@ -141,9 +159,16 @@ final static Model model__ = new AbstractModel(<%= parentModel %>new Property[] 
     c.set<%= prop.name.capitalize() %>(get<%= prop.name.capitalize() %>());<% } %>
     return c;
   }
+<% for ( var key in this.methods ) {
+  var method = this.methods[key];
+  javaSource.methodSource.call(this, out, javaSource, method);
+} %>
 }
 */},
-  function propertySource(out, prop) {/*<%
+  function propertySource(out, javaSource, prop) {/*<%
+    if (prop.labels && prop.labels.indexOf(javaSource.flag) === -1) {
+      return;
+    }
     var rawType, wrapperType, genericPropertyType, baseClass;
     rawType = prop.javaType;
 
@@ -154,91 +179,72 @@ final static Model model__ = new AbstractModel(<%= parentModel %>new Property[] 
           name === 'boolean' ? 'Boolean' : name;
     };
 
+    wrapperType = toWrapperClass(rawType);
+
+    if (rawType.substring(0, 6) === 'Array[') {
+      wrapperType = rawType = 'List<' + rawType.substring(6, rawType.length - 1) + '>';
+    } else if (rawType === 'Array') {
+      wrapperType = rawType = 'List';
+    }
+
     var extraText = '  ';
-    if (prop.hidden) extraText += '  public boolean isHidden() { return true; }\u000a  ';
-    if (prop.transient) extraText += '  public boolean isTransient() { return true; }\u000a  ';
-    if (prop.help) {
-      var parts = prop.help.split('\n').map(function(s) { return s.trim(); }).filter(function(s) { return s; });
-      extraText += '  public String getHelp() {\u000a  ';
-      extraText += '    return "' + parts.join('\\n" +\n          "') + '";\u000a  ';
-      extraText += '  }\u000a  ';
-    }
+    var propName = constantize(prop.name);
+    var camelName = prop.name.capitalize();
 
-    var asDAO = false;
-
-    if (StringArrayProperty.isInstance(prop)) {
-      rawType = wrapperType = 'List<String>';
-      genericPropertyType = 'ArrayProperty<String>';
-      baseClass = 'AbstractStringArrayProperty';
-    } else if (ArrayProperty.isInstance(prop) || ReferenceArrayProperty.isInstance(prop)) {
-      var elementType = toWrapperClass(prop.subType);
-      rawType = wrapperType = 'List<' + elementType + '>';
-      var ref = ReferenceArrayProperty.isInstance(prop) ? 'Reference' : '';
-      genericPropertyType = ref + 'ArrayProperty<' + elementType + '>';
-      baseClass = 'Abstract' + ref + 'ArrayProperty<' + elementType + '>';
-      var propType = this.X.lookup(prop.subType) ? 'OBJECT' : constantize(elementType);
-      extraText += '  public int getType() { return Property.TYPE_ARRAY | Property.TYPE_' + propType + '; }\u000a  ';
-      asDAO = !!(prop.subType && this.X.lookup(prop.subType));
-      if (asDAO) {
-        extraText += '  public DAO getAsDAO(Object o) { return ((' + this.name + ') o).get' + prop.name.capitalize() + 'AsDAO(); }\u000a  ';
-      }
-    } else if (ReferenceProperty.isInstance(prop)) {
-      wrapperType = toWrapperClass(rawType);
-      genericPropertyType = 'ReferenceProperty<' + wrapperType + '>';
-      baseClass = 'Abstract' + genericPropertyType;
-      extraText += '  public int getType() { return Property.TYPE_' + constantize(wrapperType) + '; }\u000a  ';
-    } else if (foam.core.types.StringEnumProperty.isInstance(prop)) {
-      wrapperType = 'String';
-      genericPropertyType = 'EnumProperty<String>';
-      baseClass = 'Abstract' + genericPropertyType;
-      var choices = [];
-      for (var i = 0; i < prop.choices.length; i++) {
-        var c = prop.choices[i];
-        if (typeof c === 'string') c = [c, c];
-        choices.push('new LabeledItem<String>("' + c[1] + '", "' + c[0] + '")');
-      }
-      extraText += '  public void initChoices_() { choices_ = Arrays.asList(' + choices.join(', ') + '); }\u000a  ';
-      extraText += '  public int getType() { return Property.TYPE_STRING; }\u000a  ';
-    } else {
-      wrapperType = toWrapperClass(rawType);
-      genericPropertyType = 'Property<' + wrapperType + '>';
-      baseClass = 'Abstract' + prop.javaType.capitalize() + 'Property';
-    }
-
-    if (ReferenceProperty.isInstance(prop)) {
-      extraText += '  public Model getSubType() { return ' + prop.subType + '.MODEL(); }\u000a  ';
-      extraText += '  public Property getSubKey() { return getSubType().getProperty("' + prop.subKey + '"); }\u000a  ';
-    }
+    console.log(prop.javaType, rawType, wrapperType, propName, camelName);
 %>
-  public final static <%= genericPropertyType %> <%= constantize(prop.name) %> = new <%= baseClass %>() {
-    public String getName() { return "<%= prop.name %>"; }
-    public String getLabel() { return "<%= prop.label %>"; }
-    public <%= wrapperType %> get(Object o) { return ((<%= this.name %>) o).get<%= prop.name.capitalize() %>(); }
-    public void set(Object o, <%= wrapperType %> v) { ((<%= this.name %>) o).set<%= prop.name.capitalize() %>(v); }
+  public final static <%= prop.model_.name %> <%= propName %> = new <%= prop.model_.name %>() {
+    public <%= wrapperType %> get(Object o) { return ((<%= this.name %>) o).get<%= camelName %>(); }
+    public void set(Object o, <%= wrapperType %> v) { ((<%= this.name %>) o).set<%= camelName %>(v); }
     public int compare(Object o1, Object o2) { return compareValues(((<%= this.name%>)o1).<%= prop.name %>_, ((<%= this.name%>)o2).<%= prop.name %>_); }
 <%= extraText %>};
+  static {<%
+    var metaprops = prop.model_.getRuntimeProperties().filter(function(p) {
+      return !p.labels || p.labels.indexOf(javaSource.flag) !== -1;
+    });
+    for (var i = 0; i < metaprops.length; i++) {
+      var valueText = prop[metaprops[i].name];
+      var type = typeof valueText;
+      if (type === 'string') {
+        valueText = valueText === '' ? undefined : ('"' + valueText + '"');
+      } else if (type === 'number' || type === 'boolean') {
+        valueText = '' + valueText;
+      } else if (type === 'object') {
+        if (Array.isArray(valueText)) {
+          if (valueText.length === 0) {
+            valueText = undefined;
+          } else {
+            console.warn('Not implemented: Serialization of array-valued metaproperties (prop = ' + metaprops[i].name + ').');
+          }
+        } else {
+          console.warn('Attempt to output object-valued property', metaprops[i].name, valueText);
+          valueText = undefined;
+        }
+      } else {
+        valueText = undefined;
+      }
+      if (valueText !== undefined) {%>
+    <%= propName %>.set<%= metaprops[i].name.capitalize() %>(<%= valueText %>);<% } } %>
+    <%= propName %>.freeze();
+  }
 
   protected <%= rawType %> <%= prop.name %>_;
 
   public <%= rawType %> get<%= prop.name.capitalize() %>() {
     return <%= prop.name %>_;
   }
-<% if (asDAO) { %>
-  DAO <%= prop.name %>DAO_;
-  public DAO get<%= prop.name.capitalize() %>AsDAO() {
-    if (<%= prop.name %>DAO_ == null) <%= prop.name %>DAO_ = new ArrayDAO(<%= prop.subType %>.MODEL(), <%= prop.name %>_);
-    return <%= prop.name %>DAO_;
-  }
-<% } %>
-  public void set<%= prop.name.capitalize() %>(<%= rawType, ' ', prop.name %>) {
+
+  public void set<%= prop.name.capitalize() %>(<%= rawType %>  nu) {
     if (isFrozen()) throw new FrozenObjectModificationException();
     <%= rawType %> oldValue = <%= prop.name %>_;
-    <%= prop.name %>_ = <%= prop.name %>;
-    if (<%= constantize(prop.name) %>.compareValues(oldValue, <%= prop.name %>) != 0) {
-      firePropertyChange(<%= constantize(prop.name) %>, oldValue, <%= prop.name %>);
+    <%= prop.name %>_ = nu;
+    if (<%= propName %>.compareValues(oldValue, nu) != 0) {
+      firePropertyChange(<%= propName %>, oldValue, nu);
     }
   }
 */},
+
+  function methodSource(out, javaSource, method) {/*<% if (method.abstract || method.javaCode) { method.javaSource(out) } %>*/},
 
   function relationshipSource(out, rel) {/*<%
     var shortName = rel.relatedModel.split('.').pop();

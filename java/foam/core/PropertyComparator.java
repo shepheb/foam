@@ -11,8 +11,8 @@ import foam.dao.Index;
  * instances of the same property they want to compare.
  */
 public class PropertyComparator<T> implements Comparator<T> {
-  private Property<T> prop;
-  public PropertyComparator(Property<T> prop) {
+  private Property prop;
+  public PropertyComparator(Property prop) {
     this.prop = prop;
   }
 
