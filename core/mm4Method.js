@@ -328,7 +328,7 @@ CLASS({
       required: false,
       defaultValueFn: function() { return this.type; },
       help: 'The java type that represents the type of this property.',
-      labels: ['debug'],
+      labels: ['java', 'android', 'debug'],
       documentation: function() { /* When running FOAM in a Java environment, specifies the Java type
         or class to use. */}
     },
@@ -438,7 +438,7 @@ CLASS({
       name: 'javaSource',
       description: 'Java Source',
       template: '<%= this.type %> <%= this.name %>',
-      labels: ['debug'],
+      labels: ['java', 'android', 'debug'],
     },
     {
       model_: 'Template',
@@ -840,11 +840,16 @@ CLASS({
       documentation: function() { /*
           The return type of the $$DOC{ref:'Method'}.
         */},
-      labels: ['debug']
+      labels: ['swift', 'java', 'android', 'debug']
     },
     {
       name: 'swiftReturnType',
       labels: ['swift'],
+      defaultValueFn: function() { return this.returnType; }
+    },
+    {
+      name: 'javaReturnType',
+      labels: ['java', 'android'],
       defaultValueFn: function() { return this.returnType; }
     },
     {
@@ -867,7 +872,7 @@ CLASS({
       documentation: function() { /*
           The $$DOC{ref:'Arg',text:'Arguments'} for the method.
         */},
-      labels: ['debug']
+      labels: ['java', 'android', 'debug']
     },
     {
       name: 'whenIdle',
@@ -902,7 +907,7 @@ CLASS({
 
       name: 'javaSource',
       description: 'Java Source',
-      template: '<%= this.returnType || "void" %> <%= this.name %>(' +
+      template: 'public <%= this.javaReturnType || "void" %> <%= this.name %>(' +
         '<% for ( var i = 0 ; i < this.args.length ; i++ ) { var arg = this.args[i]; %>' +
         '<%= arg.javaSource() %><% if ( i < this.args.length-1 ) out(", ");%>' +
         '<% } %>' +

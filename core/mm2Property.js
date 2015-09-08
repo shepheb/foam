@@ -148,6 +148,24 @@ var Property = {
          */}
     },
     {
+      name: 'javaDefaultValue',
+      labels: ['java'],
+      defaultValueFn: function() {
+        switch(typeof this.defaultValue) {
+        case "string":
+          // TODO(braden): Escaping? Here and Swift, below.
+          return '"' + this.defaultValue + '"';
+        default:
+          return this.defaultValue;
+        }
+      }
+    },
+    {
+      name: 'androidDefaultValue',
+      labels: ['android'],
+      defaultValueFn: function() { return this.javaDefaultValue; }
+    },
+    {
       name: 'swiftDefaultValue',
       labels: ['swift'],
       defaultValueFn: function() {
@@ -181,6 +199,7 @@ var Property = {
       name: 'javascriptType',
       type: 'String',
       required: false,
+      labels: ['javascript'],
       defaultValueFn: function() { return this.type; },
       help: 'The javascript type that represents the type of this property.',
       documentation: function() { /* When running FOAM in a javascript environment, specifies the javascript
@@ -366,6 +385,13 @@ var Property = {
       */}
     },
     {
+      name: 'androidView',
+      type: 'String',
+      labels: ['android'],
+      defaultValueFn: function() { return this.view.substring(this.view.lastIndexOf('.')+1); },
+      help: 'The default view name for this property in Android Java.'
+    },
+    {
       name: 'swiftView',
       type: 'String',
       labels: ['swift'],
@@ -376,6 +402,7 @@ var Property = {
 //      model_: 'FunctionProperty',
       name: 'detailViewPreRow',
       defaultValue: function() { return ""; },
+      labels: ['javascript'],
       help: 'Inject HTML before row in DetailView.',
       documentation: function() { /*
         An optional function to
@@ -386,6 +413,7 @@ var Property = {
 //      model_: 'FunctionProperty',
       name: 'detailViewPostRow',
       defaultValue: function() { return ""; },
+      labels: ['javascript'],
       help: 'Inject HTML before row in DetailView.',
       documentation: function() { /*
         An optional function to
@@ -686,6 +714,7 @@ var Property = {
         this[p.name] = o.fromElement(e);
       },
       help: 'Function to extract from a DOM Element.',
+      labels: ['javascript'],
       documentation: "Function to extract a value from a DOM Element."
     },
     {

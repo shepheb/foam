@@ -56,6 +56,10 @@ CLASS({
       defaultValue: 'foam.ui.TextFieldView'
     },
     {
+      name: 'androidView',
+      defaultValue: 'foam.android.view.MDEditTextBridge'
+    },
+    {
       name: 'pattern',
       help: 'Regex pattern for property.'
     },
@@ -101,6 +105,10 @@ CLASS({
     {
       name: 'view',
       defaultValue: 'foam.ui.BooleanView',
+    },
+    {
+      name: 'androidView',
+      defaultValue: 'foam.android.view.CheckBoxBridge'
     },
     {
       name: 'defaultValue',
@@ -255,6 +263,10 @@ CLASS({
     {
       name: 'view',
       defaultValue: 'foam.ui.IntFieldView'
+    },
+    {
+      name: 'androidView',
+      defaultValue: 'foam.android.view.MDEditIntBridge',
     },
     {
       name: 'adapt',
@@ -437,6 +449,14 @@ CLASS({
       help: 'The FOAM type of this property.'
     },
     {
+      name: 'javaType',
+      defaultValue: 'java.util.List',
+    },
+    {
+      name: 'javaDefaultValue',
+      defaultValue: 'new ArrayList()',
+    },
+    {
       name: 'swiftType',
       defaultValue: '[AnyObject]'
     },
@@ -494,12 +514,16 @@ CLASS({
       name: 'javaType',
       type: 'String',
       displayWidth: 10,
-      defaultValueFn: function(p) { return this.subType + '[]'; },
+      defaultValueFn: function(p) { return 'List<' + this.javaSubType + '>' },
       help: 'The Java type of this property.'
     },
     {
       name: 'view',
       defaultValue: 'foam.ui.ArrayView'
+    },
+    {
+      name: 'androidView',
+      defaultValue: 'foam.android.view.ArrayViewBridge'
     },
     {
       name: 'factory',
@@ -671,12 +695,16 @@ CLASS({
       name: 'javaType',
       type: 'String',
       displayWidth: 10,
-      defaultValue: 'String[]',
+      defaultValue: 'List<String>',
       help: 'The Java type of this property.'
     },
     {
       name: 'view',
       defaultValue: 'foam.ui.StringArrayView'
+    },
+    {
+      name: 'androidView',
+      defaultValue: 'foam.android.view.ArrayViewBridge'
     },
     {
       name: 'prototag',
@@ -970,7 +998,7 @@ CLASS({
     {
       name: 'javaType',
       defaultValueFn: function() {
-        return this.X.lookup(this.subType).ID.javaType + '[]';
+        return 'List<' + this.X.lookup(this.subType).ID.javaType + '>';
       }
     },
     {
@@ -978,7 +1006,11 @@ CLASS({
       defaultValue: 'foam.ui.StringArrayView',
 // TODO: Uncomment when all usages of ReferenceProperty/ReferenceArrayProperty fixed.
 //      defaultValue: 'DAOKeyView'
-    }
+    },
+    {
+      name: 'androidView',
+      defaultValue: 'foam.android.view.ArrayViewBridge'
+    },
   ]
 });
 
