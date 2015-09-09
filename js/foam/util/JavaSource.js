@@ -98,10 +98,10 @@ package <%= this.package || 'foam.core' %>;
 import foam.core.*;
 import foam.dao.*;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
-public<%= this.abstract ? ' abstract' : '' %> class <%= className %>
-    extends <%= parentClassName %> {
+public<%= this.abstract || this.methods.filter(function(m) { return m.javaAbstract; }).length ? ' abstract' : '' %> class <%= className %> extends <%= parentClassName %> {
 <% for ( var key in this.properties ) {
   var prop = this.properties[key];
   javaSource.propertySource.call(this, out, javaSource, prop);
@@ -194,34 +194,43 @@ final static Model model__ = new AbstractModel(<%= parentModel %>new Property[] 
     console.log(prop.javaType, rawType, wrapperType, propName, camelName);
 %>
   public final static <%= prop.model_.name %> <%= propName %> = new <%= prop.model_.name %>() {
-    public <%= wrapperType %> get(Object o) { return ((<%= this.name %>) o).get<%= camelName %>(); }
-    public void set(Object o, <%= wrapperType %> v) { ((<%= this.name %>) o).set<%= camelName %>(v); }
-    public int compare(Object o1, Object o2) { return compareValues(((<%= this.name%>)o1).<%= prop.name %>_, ((<%= this.name%>)o2).<%= prop.name %>_); }
+    public Object get(Object o) { return ((<%= this.name %>) o).get<%= camelName %>(); }
+    public void set(Object o, Object v) { ((<%= this.name %>) o).set<%= camelName %>((<%= wrapperType %>) v); }
+    public int compare(Object o1, Object o2) { return getCompareProperty().compare(((<%= this.name%>)o1).<%= prop.name %>_, ((<%= this.name%>)o2).<%= prop.name %>_); }
 <%= extraText %>};
   static {<%
     var metaprops = prop.model_.getRuntimeProperties().filter(function(p) {
       return !p.labels || p.labels.indexOf(javaSource.flag) !== -1;
     });
+    function escapeString(str) {
+      return str.replace(/"/g, '\\"');
+    }
     for (var i = 0; i < metaprops.length; i++) {
-      var valueText = prop[metaprops[i].name];
-      var type = typeof valueText;
-      if (type === 'string') {
-        valueText = valueText === '' ? undefined : ('"' + valueText + '"');
-      } else if (type === 'number' || type === 'boolean') {
-        valueText = '' + valueText;
-      } else if (type === 'object') {
-        if (Array.isArray(valueText)) {
-          if (valueText.length === 0) {
-            valueText = undefined;
+      var valueText;
+      if (prop.instance_.hasOwnProperty(metaprops[i].name)) {
+        valueText = prop[metaprops[i].name];
+        var type = typeof valueText;
+        if (type === 'string') {
+          valueText = valueText === '' ? undefined : ('"' + escapeString(valueText) + '"');
+        } else if (type === 'number' || type === 'boolean') {
+          valueText = '' + valueText;
+        } else if (type === 'object') {
+          if (Array.isArray(valueText)) {
+            if (valueText.length === 0) {
+              valueText = undefined;
+            } else {
+              console.warn('Not implemented: Serialization of array-valued metaproperties (prop = ' + metaprops[i].name + ').');
+            }
           } else {
-            console.warn('Not implemented: Serialization of array-valued metaproperties (prop = ' + metaprops[i].name + ').');
+            console.warn('Attempt to output object-valued property', metaprops[i].name, valueText);
+            valueText = undefined;
           }
         } else {
-          console.warn('Attempt to output object-valued property', metaprops[i].name, valueText);
           valueText = undefined;
         }
       } else {
-        valueText = undefined;
+        valueText = metaprops[i].javaDefaultValue;
+        if (valueText === '') valueText = undefined;
       }
       if (valueText !== undefined) {%>
     <%= propName %>.set<%= metaprops[i].name.capitalize() %>(<%= valueText %>);<% } } %>
@@ -238,13 +247,25 @@ final static Model model__ = new AbstractModel(<%= parentModel %>new Property[] 
     if (isFrozen()) throw new FrozenObjectModificationException();
     <%= rawType %> oldValue = <%= prop.name %>_;
     <%= prop.name %>_ = nu;
-    if (<%= propName %>.compareValues(oldValue, nu) != 0) {
+    if (<%= propName %>.getCompareProperty().compare(oldValue, nu) != 0) {
       firePropertyChange(<%= propName %>, oldValue, nu);
     }
   }
 */},
 
-  function methodSource(out, javaSource, method) {/*<% if (method.abstract || method.javaCode) { method.javaSource(out) } %>*/},
+function methodSource(out, javaSource, method) {/*<% if (method.javaCode || method.javaAbstract) { %>
+  public <%= method.javaAbstract ? "abstract " : "" %><%= method.javaReturnType || "void" %> <%= method.name %>(<%
+    for (var i = 0; i < method.args.length; i++) {
+      var arg = method.args[i];
+      %><%= arg.javaType %> <%= arg.name %><%= i < method.args.length - 1 ? ', ' : '' %><%
+    }
+    out(')');
+    if (method.javaAbstract) {
+      out(';\u000a');
+    } else {
+      out('{\u000a    ', method.javaCode, '\u000a  }\u000a');
+    }
+  } %>*/},
 
   function relationshipSource(out, rel) {/*<%
     var shortName = rel.relatedModel.split('.').pop();

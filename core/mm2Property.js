@@ -149,21 +149,18 @@ var Property = {
     },
     {
       name: 'javaDefaultValue',
-      labels: ['java'],
+      labels: ['java', 'android'],
+      documentation: 'This value should be a (Javascript) string, whose contents are written literally into the Java source.',
       defaultValueFn: function() {
         switch(typeof this.defaultValue) {
         case "string":
-          // TODO(braden): Escaping? Here and Swift, below.
-          return '"' + this.defaultValue + '"';
+          return this.defaultValue === '' ? '' : '"' + this.defaultValue + '"';
+        case "function":
+          return '';
         default:
-          return this.defaultValue;
+          return '' + this.defaultValue;
         }
       }
-    },
-    {
-      name: 'androidDefaultValue',
-      labels: ['android'],
-      defaultValueFn: function() { return this.javaDefaultValue; }
     },
     {
       name: 'swiftDefaultValue',
@@ -267,6 +264,7 @@ var Property = {
       javaType: 'Expression',
       displayWidth: 20,
       defaultValue: 'ID',
+      javaDefaultValue: '',
       help: 'The foreign key that this property references.',
       documentation: function() {/*
         Used to project whole objects of $$DOC{ref:'.subType'} into the value
@@ -336,7 +334,7 @@ var Property = {
       type: 'int',
       displayWidth: 8,
       displayHeight: 1,
-      defaultValue: '30',
+      defaultValue: 30,
       help: 'The display width of the property.',
       documentation: function() { /*
         A width suggestion for views that automatically render the $$DOC{ref:'Property'}.
@@ -430,6 +428,7 @@ var Property = {
     {
       name: 'defaultValue',
       type: 'String',
+      javaType: 'Object',
       required: false,
       displayWidth: 70,
       displayHeight: 1,
@@ -682,6 +681,7 @@ var Property = {
     {
       name: 'compareProperty',
       type: 'Function',
+      javaType: 'Comparator',
       view: 'foam.ui.FunctionView',
       displayWidth: 70,
       displayHeight: 5,
@@ -694,6 +694,8 @@ var Property = {
         if ( o1.compareTo ) return o1.compareTo(o2);
         return o1.$UID.compareTo(o2.$UID);
       },
+      // TODO(braden): Final clause here should be based on UIDs to be stable.
+      javaDefaultValue: 'new Comparator() { public int compare(Object lhs, Object rhs) { if (lhs == rhs) return 0; if (lhs == null && rhs == null) return 0; if (lhs == null) return -1; if (rhs == null) return  1; if (lhs instanceof Comparable) return ((Comparable) lhs).compareTo(rhs); if (rhs instanceof Comparable) return -((Comparable) rhs).compareTo(lhs); return 1; } public boolean equals(Object other) { return compare(this, other) == 0; } }',
       help: 'Comparator function.',
       documentation: "A comparator function two compare two instances of this $$DOC{ref:'Property'}."
     },
@@ -782,14 +784,60 @@ var Property = {
     {
       name: 'f',
       code: function(obj) { return obj[this.name]; },
+      javaCode: 'return get(obj);',
+      args: [
+        {
+          name: 'obj',
+          javaType: 'Object'
+        }
+      ],
+      javaReturnType: 'Object',
+    },
+    {
+      name: 'get',
+      labels: ['java', 'android'],
       javaAbstract: true,
       args: [
         {
           name: 'obj',
-          javaType: 'FObject'
+          javaType: 'Object'
         }
       ],
-      javaReturnType: 'Object',
+      javaReturnType: 'Object'
+    },
+    {
+      name: 'set',
+      labels: ['java', 'android'],
+      javaAbstract: true,
+      args: [
+        {
+          name: 'obj',
+          javaType: 'Object'
+        },
+        {
+          name: 'value',
+          javaType: 'Object'
+        }
+      ],
+    },
+    {
+      name: 'compare',
+      labels: ['javascrupt', 'java', 'android'],
+      args: [
+        {
+          name: 'o1',
+          javatype: 'object',
+        },
+        {
+          name: 'o2',
+          javatype: 'object',
+        }
+      ],
+      javaReturnType: 'int',
+      code: function(o1, o2) {
+        return this.compareProperty(this.f(o1), this.f(o2));
+      },
+      javaAbstract: true
     },
     function compare(o1, o2) {
       return this.compareProperty(this.f(o1), this.f(o2));

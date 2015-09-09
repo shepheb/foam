@@ -434,15 +434,6 @@ CLASS({
   templates:[
     {
       model_: 'Template',
-
-      name: 'javaSource',
-      description: 'Java Source',
-      template: '<%= this.type %> <%= this.name %>',
-      labels: ['java', 'android', 'debug'],
-    },
-    {
-      model_: 'Template',
-
       name: 'closureSource',
       description: 'Closure JavaScript Source',
       template: '@param {<%= this.javascriptType %>} <%= this.name %> .',
@@ -835,6 +826,11 @@ CLASS({
         */}
     },
     {
+      name: 'javaCode',
+      labels: ['java', 'android'],
+      help: 'Java code for this method.',
+    },
+    {
       name:  'returnType',
       defaultValue: '',
       help: 'Return type.',
@@ -915,19 +911,6 @@ CLASS({
   ],
 
   templates:[
-    {
-      model_: 'Template',
-      name: 'javaSource',
-      description: 'Java Source',
-      template: '<% if (this.javaCode || this.abstract) {%>' +
-        '  public <%= this.abstract ? "abstract " : " " %><%= this.javaReturnType || "void" %> <%= this.name %>(' +
-        '<% for ( var i = 0 ; i < this.args.length ; i++ ) { var arg = this.args[i]; %>' +
-        '<%= arg.javaSource() %><% if ( i < this.args.length-1 ) out(", ");%>' +
-        '<% } %>' +
-        ')<% if (this.abstract) { %>;\u000a' +
-        '<% } else { %>' +
-        ' {\u000a   <%= this.javaCode %>\u000a  }<% } %>'
-    },
     {
       model_: 'Template',
 
