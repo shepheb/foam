@@ -102,9 +102,11 @@ import java.util.Comparator;
 import java.util.List;
 
 public<%= this.abstract || this.methods.filter(function(m) { return m.javaAbstract; }).length ? ' abstract' : '' %> class <%= className %> extends <%= parentClassName %> {
-<% for ( var key in this.properties ) {
-  var prop = this.properties[key];
-  javaSource.propertySource.call(this, out, javaSource, prop);
+<% var allProps = [];
+  for ( var key in this.properties ) {
+    var prop = this.properties[key];
+    allProps.push(prop);
+    javaSource.propertySource.call(this, out, javaSource, prop);
 } %>
 <% if (this.relationships && this.relationships.length) {
   for ( var i = 0; i < this.relationships.length; i++) {
@@ -112,13 +114,15 @@ public<%= this.abstract || this.methods.filter(function(m) { return m.javaAbstra
     javaSource.relationshipSource.call(this, out, rel);
   }
 } %>
-final static Model model__ = new AbstractModel(<%= parentModel %>new Property[] {<% var allProps = this.getRuntimeProperties(); for (var i = 0; i < allProps.length; i++) { var prop = allProps[i]; %> <%= constantize(prop.name) %>,<% } %>} , new Relationship[] {<% if (this.relationships && this.relationships.length) { for (var i = 0; i < this.relationships.length; i++) { %> <%= constantize(this.relationships[i].name) %>, <% } } %> }) {
-    public String getName() { return "<%= this.id %>"; }
-    public String getShortName() { return "<%= this.name %>"; }
-    public String getLabel() { return "<%= this.label %>"; }
-    public Property getID() { return <%= this.ids.length ? constantize(this.ids[0]) : 'null' %>; }
-    public FObject newInstance() { return new <%= className %>(); }
-  };
+  final static Model model__ = new Model();
+  static {<%
+    for (var i = 0; i < allProps.length; i++) {
+      var prop = allProps[i];
+      %>
+    model__.set<%= prop.name.capitalize() %>(<%= constantize(prop.name) %>);<%
+    } %>
+    model__.freeze();
+  }
 
   public Model model() {
     return model__;
