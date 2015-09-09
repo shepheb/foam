@@ -779,7 +779,18 @@ var Property = {
 
   methods: [
     function partialEval() { return this; },
-    function f(obj) { return obj[this.name] },
+    {
+      name: 'f',
+      code: function(obj) { return obj[this.name]; },
+      javaAbstract: true,
+      args: [
+        {
+          name: 'obj',
+          javaType: 'FObject'
+        }
+      ],
+      javaReturnType: 'Object',
+    },
     function compare(o1, o2) {
       return this.compareProperty(this.f(o1), this.f(o2));
     },
