@@ -686,7 +686,7 @@ v                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // we can import the prop
     {
       name: 'tests',
       label: 'Unit Tests',
-      type: 'Array[Unit Test]',
+      type: 'Array[UnitTest]',
       subType: 'UnitTest',
       view: 'foam.ui.ArrayView',
       factory: function() { return []; },

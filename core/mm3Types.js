@@ -456,10 +456,6 @@ CLASS({
       help: 'The FOAM type of this property.'
     },
     {
-      name: 'javaType',
-      defaultValue: 'java.util.List',
-    },
-    {
       name: 'javaDefaultValue',
       defaultValue: 'new ArrayList()',
     },
@@ -521,7 +517,7 @@ CLASS({
       name: 'javaType',
       type: 'String',
       displayWidth: 10,
-      defaultValueFn: function(p) { return 'List<' + this.javaSubType + '>' },
+      defaultValueFn: function(p) { return 'List<' + this.subType + '>' },
       help: 'The Java type of this property.'
     },
     {

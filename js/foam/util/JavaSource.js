@@ -116,10 +116,17 @@ public<%= this.abstract || this.methods.filter(function(m) { return m.javaAbstra
 } %>
   final static Model model__ = new Model();
   static {<%
+    for (var i = 0; i < Model.properties.length; i++) {
+      var prop = Model.properties[i];
+      %>
+    model__.set<%= prop.name.capitalize() %>(<%= this[prop.name] %>);<%
+    } %>
+
+    model__.setProperties(new ArrayList<Property>());<%
     for (var i = 0; i < allProps.length; i++) {
       var prop = allProps[i];
       %>
-    model__.set<%= prop.name.capitalize() %>(<%= constantize(prop.name) %>);<%
+    model__.getProperties().add(<%= constantize(prop.name) %>);<%
     } %>
     model__.freeze();
   }
@@ -195,7 +202,7 @@ public<%= this.abstract || this.methods.filter(function(m) { return m.javaAbstra
     var propName = constantize(prop.name);
     var camelName = prop.name.capitalize();
 
-    console.log(prop.javaType, rawType, wrapperType, propName, camelName);
+    console.log(this.id, prop.javaType, rawType, wrapperType, propName, camelName);
 %>
   public final static <%= prop.model_.name %> <%= propName %> = new <%= prop.model_.name %>() {
     public Object get(Object o) { return ((<%= this.name %>) o).get<%= camelName %>(); }

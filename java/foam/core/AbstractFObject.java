@@ -19,6 +19,7 @@ package foam.core;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractFObject extends PubSubSource implements FObject, Serializable {
@@ -77,7 +78,7 @@ public abstract class AbstractFObject extends PubSubSource implements FObject, S
         return c == 0 ? 1 : c;
       } else {
         // Compare each of the properties, in order.
-        Property[] props = f1.model().getProperties();
+        List<Property> props = f1.model().getProperties();
         for (Property p : props) {
           int c = p.compare(f1, f2);
           if (c != 0) return c;

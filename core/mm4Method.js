@@ -223,6 +223,7 @@ CLASS({
     {
       name: 'priority',
       type: 'Int',
+      javaType: 'int',
       defaultValue: 5,
       help: 'Measure of importance of showing this action to the user when it is rendered in a list.',
       documentation: function() { /*
@@ -237,6 +238,7 @@ CLASS({
     {
       name: 'order',
       type: 'Float',
+      javaType: 'float',
       defaultValue: 5.0,
       help: 'Indication of where this action should appear in an ordered list of actions.',
       documentation: function() { /*
@@ -678,6 +680,8 @@ CLASS({
     {
       model_: 'ArrayProperty',
       name: 'placeholders',
+      type: 'Array',
+      javaType: 'Array[foam.i18n.Placeholder]',
       help: 'Placeholders to inject into the message.',
       documentation: function() {/* Array of plain Javascript objects
         describing in-message placeholders. The data can be expanded into
