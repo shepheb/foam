@@ -35,5 +35,9 @@ CLASS({
       documentation: 'The string after the dot, eg. "bar" of "foo.bar".',
       type: 'String',
     },
+    {
+      name: 'lvalue',
+      defaultValue: true
+    },
   ]
 });

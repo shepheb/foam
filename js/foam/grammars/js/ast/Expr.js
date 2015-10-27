@@ -18,4 +18,14 @@ CLASS({
   package: 'foam.grammars.js.ast',
   name: 'Expr',
   documentation: 'Base class for all expression AST nodes.',
+  properties: [
+    {
+      model_: 'BooleanProperty',
+      name: 'lvalue',
+      documentation: 'True iff this expression is a value that can be ' +
+          'written to, ie. iff it can be on the left-hand side of an ' +
+          'assignment.',
+      defaultValue: false
+    },
+  ]
 });

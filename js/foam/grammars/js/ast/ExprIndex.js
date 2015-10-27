@@ -35,5 +35,11 @@ CLASS({
       documentation: 'The expression for the index, eg. "bar" of "foo[bar]".',
       type: 'foam.grammars.js.ast.Expr',
     },
+    {
+      name: 'lvalue',
+      getter: function() {
+        return this.target.lvalue;
+      }
+    },
   ]
 });

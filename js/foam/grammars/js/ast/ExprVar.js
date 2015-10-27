@@ -25,5 +25,9 @@ CLASS({
       documentation: 'The name of the variable being referenced.',
       required: true
     },
+    {
+      name: 'lvalue',
+      defaultValue: true
+    },
   ]
 });
