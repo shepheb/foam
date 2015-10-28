@@ -149,10 +149,10 @@ CLASS({
           __proto__: exprGrammar,
           START: sym('expr'),
 
-          identifier: seq(
+          identifier: str(seq(
             alt(range('A', 'Z'), range('a', 'z'), '_', '$'),
             str(repeat(alt(sym('alphaNum'), '_', '$')))
-          ),
+          )),
 
           dot_or_index: alt(
             seq1(3, sym('ws'), '.', sym('ws'), sym('identifier')),
@@ -164,7 +164,7 @@ CLASS({
 
           // Numeric literal
           // TODO(braden): Advanced numeric literals.
-          numLiteral: seq(range('1', '9'), str(repeat(range('0', '9')))),
+          numLiteral: str(seq(range('1', '9'), str(repeat(range('0', '9'))))),
           bracketedSubExpr: seq1(2, '(', sym('ws'), sym('expr'), sym('ws'), ')'),
           baseTerm: alt(
             sym('bracketedSubExpr'),
@@ -197,12 +197,6 @@ CLASS({
           ),
         };
         g.addActions({
-          identifier: function(xs) {
-            return xs[0] + xs[1];
-          },
-          numLiteral: function(xs) {
-            return +(xs[0] + xs[1]);
-          },
           var: function(xs) {
             var base = self.ExprVar.create({ name: xs[0] });
             for (var i = 0; i < xs[1].length; i++) {
