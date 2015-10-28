@@ -160,17 +160,22 @@ CLASS({
 
           var: seq(sym('identifier'), repeat(sym('dot_or_index'))),
 
-          term: alt(
-            // Bracketed subexpression
-            seq1(2, '(', sym('ws'), sym('expr'), sym('ws'), ')'),
+          //newExpr: seq1(1, gapAfter('new'), sym('ws'), sym('identifier')),
+
+          // Numeric literal
+          // TODO(braden): Advanced numeric literals.
+          numLiteral: seq(range('1', '9'), str(repeat(range('0', '9')))),
+          bracketedSubExpr: seq1(2, '(', sym('ws'), sym('expr'), sym('ws'), ')'),
+          baseTerm: alt(
+            sym('bracketedSubExpr'),
             sym('var'),
-            // TODO(braden): String literals.
-            // TODO(braden): Object literals.
-            // TODO(braden): Array literals.
-            // Numeric literal
-            // TODO(braden): Advanced numeric literals.
-            str(plus(range('0', '9')))
-          ),
+            sym('numLiteral')),
+
+
+          // TODO(braden): String literals.
+          // TODO(braden): Object literals.
+          // TODO(braden): Array literals.
+          term: sym('baseTerm'),
 
           alphaNum: alt(
             range('0', '9'),
@@ -194,6 +199,9 @@ CLASS({
         g.addActions({
           identifier: function(xs) {
             return xs[0] + xs[1];
+          },
+          numLiteral: function(xs) {
+            return +(xs[0] + xs[1]);
           },
           var: function(xs) {
             var base = self.ExprVar.create({ name: xs[0] });
