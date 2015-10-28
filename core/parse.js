@@ -222,7 +222,7 @@ function lookahead(p) {
   return f;
 }
 
-function repeat(p, opt_delim, opt_min, opt_max) {
+function repeat(p, opt_delim, opt_min, opt_max, opt_keep_delims) {
   p = prep(p);
   opt_delim = prep(opt_delim);
 
@@ -235,6 +235,7 @@ function repeat(p, opt_delim, opt_min, opt_max) {
       if ( opt_delim && ret.length != 0 ) {
         if ( ! ( res = this.parse(opt_delim, ps) ) ) break;
         ps = res;
+        if (opt_keep_delims) ret.push(res.value);
       }
 
       if ( ! ( res = this.parse(p,ps) ) ) break;
