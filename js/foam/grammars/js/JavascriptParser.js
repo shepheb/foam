@@ -154,18 +154,16 @@ CLASS({
             str(repeat(alt(sym('alphaNum'), '_', '$')))
           ),
 
-          /*
           dot_or_index: alt(
-            seq1(1, '.', sym('identifier')),
-            seq1(2, '[', sym('ws'), sym('expr'), sym('ws'), ']')),
+            seq1(3, sym('ws'), '.', sym('ws'), sym('identifier')),
+            seq1(3, sym('ws'), '[', sym('ws'), sym('expr'), sym('ws'), ']')),
 
-          var: pick([0, 2], seq(sym('identifier'), sym('ws'), repeat(sym('dot_or_index')))),
-          */
+          var: seq(sym('identifier'), repeat(sym('dot_or_index'))),
 
           term: alt(
             // Bracketed subexpression
             seq1(2, '(', sym('ws'), sym('expr'), sym('ws'), ')'),
-            sym('identifier'),
+            sym('var'),
             // TODO(braden): String literals.
             // TODO(braden): Object literals.
             // TODO(braden): Array literals.
@@ -195,8 +193,20 @@ CLASS({
         };
         g.addActions({
           identifier: function(xs) {
-            return self.ExprVar.create({ name: xs[0] + xs[1] });
-          }
+            return xs[0] + xs[1];
+          },
+          var: function(xs) {
+            var base = self.ExprVar.create({ name: xs[0] });
+            for (var i = 0; i < xs[1].length; i++) {
+              var x = xs[1][i];
+              if (typeof x === 'string') { // .foo
+                base = self.ExprDot.create({ target: base, selector: x });
+              } else {
+                base = self.ExprIndex.create({ target: base, selector: x });
+              }
+            }
+            return base;
+          },
         });
         return g;
       }
@@ -764,7 +774,7 @@ CLASS({
 
   methods: [
     function execute() {
-      console.log.json(this.parser.parseString('del + 7'));
+      console.log.json(this.parser.parseString('del . foo  \t[43-1]'));
     },
   ]
 });
