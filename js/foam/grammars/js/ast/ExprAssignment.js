@@ -16,20 +16,6 @@
  */
 CLASS({
   package: 'foam.grammars.js.ast',
-  name: 'ExprPostfix',
-  extends: 'foam.grammars.js.ast.Expr',
-  properties: [
-    {
-      name: 'expr',
-      required: true,
-      documentation: 'Main expression that has the postfix attached.',
-      type: 'foam.grammars.js.ast.Expr',
-    },
-    {
-      name: 'op',
-      required: true,
-      documentation: 'String for the operation (++ or --).',
-      type: 'String',
-    },
-  ]
+  name: 'ExprAssignment',
+  extends: 'foam.grammars.js.ast.ExprBinOp',
 });

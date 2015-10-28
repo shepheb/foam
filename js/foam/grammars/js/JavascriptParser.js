@@ -18,18 +18,17 @@ CLASS({
   package: 'foam.grammars.js',
   name: 'JavascriptParser',
   requires: [
+    'foam.grammars.ExprGrammar',
     'foam.grammars.js.ast.Expr',
+    'foam.grammars.js.ast.ExprAssignment',
     'foam.grammars.js.ast.ExprBinOp',
-    'foam.grammars.js.ast.ExprBitwiseNegate',
-    'foam.grammars.js.ast.ExprBooleanNegate',
     'foam.grammars.js.ast.ExprCall',
     'foam.grammars.js.ast.ExprDot',
     'foam.grammars.js.ast.ExprIndex',
+    'foam.grammars.js.ast.ExprPrefix',
     'foam.grammars.js.ast.ExprPostfix',
-    'foam.grammars.js.ast.ExprUnaryMath',
     'foam.grammars.js.ast.ExprVar',
     'foam.grammars.js.ast.Stmt',
-    'foam.grammars.js.ast.StmtAssignment',
     'foam.grammars.js.ast.StmtExpr',
     'foam.grammars.js.ast.StmtFor',
     'foam.grammars.js.ast.StmtIf',
@@ -41,19 +40,147 @@ CLASS({
     {
       name: 'parser',
       factory: function() {
-        return SkipGrammar.create({
-          __proto__: grammar,
+        var self = this;
+        var postfix = function(arg, op) {
+          return self.ExprPostfix.create({ op: op, expr: arg });
+        };
+        var prefix = function(op, arg) {
+          return self.ExprPrefix.create({ op: op, expr: arg });
+        };
+        var infix = function(l, op, r) {
+          return self.ExprBinOp.create({ op: op, lhs: l, rhs: r });
+        };
+        var asst = function(l, op, r) {
+          return self.ExprAssignment.create({ op: op, lhs: l, rhs: r });
+        };
 
+        // Extends a parser to look ahead and ensure the next character is a
+        // non-identifier. Whitespace, brackets, etc. are fine.
+        var gapAfter = function(p) {
+          var p2 = seq1(0, p, lookahead(not(sym('alphaNum'))));
+          p2.toString = function() { return p; };
+          return p2;
+        };
+
+        var eg = this.ExprGrammar.create();
+        var exprGrammar = eg.build({
+          symbolName: 'expr',
+          termName: 'term',
+          skip: sym('ws'),
+          // Tightest to loosest binding
+          operations: [
+            [ // Precedence 16, according to MDN.
+              { type: 'postfix', op: '++', output: postfix },
+              { type: 'postfix', op: '--', output: postfix },
+            ], [ // Precedence 15 - prefixes and unary math
+              { type: 'prefix', op: '!', output: prefix },
+              { type: 'prefix', op: '~', output: prefix },
+              { type: 'prefix', op: '++', output: prefix },
+              { type: 'prefix', op: '--', output: prefix },
+              { type: 'prefix', op: '+', output: prefix },
+              { type: 'prefix', op: '-', output: prefix },
+              { type: 'prefix', op: gapAfter('typeof'), output: prefix },
+              { type: 'prefix', op: gapAfter('void'), output: prefix },
+              { type: 'prefix', op: gapAfter('delete'), output: prefix },
+            ], [ // Precedence 14 - multiplication ops
+              { type: 'infixLeft',  op: '*', output: infix },
+              { type: 'infixLeft',  op: '/', output: infix },
+              { type: 'infixLeft',  op: '%', output: infix },
+            ], [ // Precedence 13 - addition ops
+              { type: 'infixLeft', op: '+', output: infix },
+              { type: 'infixLeft', op: '-', output: infix },
+            ], [ // Precedence 12 - bitwise ops
+              { type: 'infixLeft', op: '<<',  output: infix },
+              { type: 'infixLeft', op: '>>>', output: infix },
+              { type: 'infixLeft', op: '>>',  output: infix },
+            ], [ // Precedence 11 - inequalities and misc. comparsions
+              { type: 'infixLeft', op: '<=', output: infix },
+              { type: 'infixLeft', op: '>=', output: infix },
+              { type: 'infixLeft', op: '<',  output: infix },
+              { type: 'infixLeft', op: '>',  output: infix },
+              { type: 'infixLeft', op: gapAfter('in'), output: infix },
+              { type: 'infixLeft', op: gapAfter('instanceof'), output: infix },
+            ], [ // Precedence 10 - equalities
+              { type: 'infixLeft', op: '===', output: infix },
+              { type: 'infixLeft', op: '!==', output: infix },
+              { type: 'infixLeft', op: '==',  output: infix },
+              { type: 'infixLeft', op: '!=',  output: infix },
+            ],
+            [{ type: 'infixLeft', op: '&',  output: infix }],
+            [{ type: 'infixLeft', op: '^',  output: infix }],
+            [{ type: 'infixLeft', op: '|',  output: infix }],
+            [{ type: 'infixLeft', op: '&&', output: infix }],
+            [{ type: 'infixLeft', op: '||', output: infix }],
+            /*
+            [
+              {
+                type: 'ternaryRight',
+                left: '?',
+                right: ':',
+                output: function(left, opLeft, middle, opRight, right) {
+                  return self.ExprTernary.create({
+                    condition: left,
+                    trueCase: middle,
+                    falseCase: right
+                  });
+                }
+              }
+            ],
+            */
+            [ // Precedence 3 - assignment
+              { type: 'infixRight', op:    '=', output: asst },
+              { type: 'infixRight', op:   '+=', output: asst },
+              { type: 'infixRight', op:   '-=', output: asst },
+              { type: 'infixRight', op:  '**=', output: asst },
+              { type: 'infixRight', op:   '*=', output: asst },
+              { type: 'infixRight', op:   '/=', output: asst },
+              { type: 'infixRight', op:   '%=', output: asst },
+              { type: 'infixRight', op:  '<<=', output: asst },
+              { type: 'infixRight', op:  '>>=', output: asst },
+              { type: 'infixRight', op: '>>>=', output: asst },
+              { type: 'infixRight', op:   '&=', output: asst },
+              { type: 'infixRight', op:   '^=', output: asst },
+              { type: 'infixRight', op:   '|=', output: asst },
+            ]
+          ]
+        });
+
+        var g = {
+          __proto__: exprGrammar,
           START: sym('expr'),
-          expr: seq(
-            sym('expr'),
-            sym('lit'),
 
+          term: alt(
+            // Bracketed subexpression
+            seq1(2, '(', sym('ws'), sym('expr'), sym('ws'), ')'),
+            // Numeric literal
+            str(plus(range('0', '9')))
+          ),
+
+          alphaNum: alt(
+            range('0', '9'),
+            range('a', 'z'),
+            range('A', 'Z')),
+
+          commentLine: seq('//', repeat0(notChar('\n'))),
+          commentBlock: seq('/*', repeat0(not('*/', anyChar)), '*/'),
+          ws_: alt(' ', '\t', '\n', '\r', '\v'),
+          ws: repeat0(alt(
+            sym('ws_'),
+            sym('commentLine'),
+            sym('commentBlock')
+          )),
+          // At least one whitespace, for eg. new and delete.
+          ws1: seq1(1,
+            alt(sym('ws_'), sym('commentLine'), sym('commentBlock')),
+            sym('ws')
+          ),
+        };
+        return g;
       }
     },
     {
       name: 'oldParser',
-      factory: function() {
+      lazyFactory: function() {
         // All the binary ops have this form:
         var self = this;
         function binOp(prec) {
@@ -374,7 +501,7 @@ CLASS({
           expr18: sym('identifier')
         };
 
-        FSParser.addActions({
+        JSParser.addActions({
           vardecl: function(xs) {
             // type ws ident ws [semi; = ws expr ws ;]
             // 0    1  2     3   4     4 5  6    7  8
@@ -607,12 +734,14 @@ CLASS({
             return FSASTExprVar.create({ name: xs });
           }
         });
-        return SkipGrammar.create({
-          __proto__: grammar,
-      })()
+        return JSParser;
+      }
     },
   ],
 
   methods: [
+    function execute() {
+      console.log.json(this.parser.parseString('delete(4)'));
+    },
   ]
 });
