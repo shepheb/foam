@@ -71,22 +71,22 @@ CLASS({
       return g;
     },
     function postfixAction(opMap, xs) {
-      console.log.json('postfixAction', Object.keys(opMap), xs);
+      //console.log.json('postfixAction', Object.keys(opMap), xs);
       var ret = typeof xs[1] === 'undefined' ? xs[0] :
           opMap[xs[1]].output(xs[0], xs[1]);
-      console.log.json('   ', ret);
+      //console.log.json('   ', ret);
       return ret;
 
     },
     function prefixAction(opMap, xs) {
-      console.log.json('prefixAction', Object.keys(opMap), xs);
+      //console.log.json('prefixAction', Object.keys(opMap), xs);
       var ret = Array.isArray(xs) ? opMap[xs[0]].output(xs[0], xs[2]) : xs;
-      console.log.json('   ', ret);
+      //console.log.json('   ', ret);
       return ret;
     },
     function infixAction(fromLeft, opMap, xs) {
       // xs is [arg1, op1, arg2, op2, ..., argN-1, opN-1, argN].
-      console.log('infixAction', fromLeft ? 'left' : 'right', Object.keys(opMap), Array.isArray(xs), xs);
+      //console.log('infixAction', fromLeft ? 'left' : 'right', Object.keys(opMap), Array.isArray(xs), xs);
       if (xs.length === 1) return xs[0];
       var total;
       if (fromLeft) {
@@ -100,7 +100,7 @@ CLASS({
           total = opMap[xs[i]].output(xs[i - 1], xs[i], total);
         }
       }
-      console.log.json('    ', total);
+      //console.log.json('    ', total);
       return total;
     },
   ]

@@ -25,6 +25,8 @@ CLASS({
     'foam.grammars.js.ast.ExprCall',
     'foam.grammars.js.ast.ExprDot',
     'foam.grammars.js.ast.ExprIndex',
+    'foam.grammars.js.ast.ExprNew',
+    'foam.grammars.js.ast.ExprNumericLiteral',
     'foam.grammars.js.ast.ExprPrefix',
     'foam.grammars.js.ast.ExprPostfix',
     'foam.grammars.js.ast.ExprVar',
@@ -160,7 +162,11 @@ CLASS({
 
           var: seq(sym('identifier'), repeat(sym('dot_or_index'))),
 
-          //newExpr: seq1(1, gapAfter('new'), sym('ws'), sym('identifier')),
+          argList: seq1(1, '(',
+            repeat(
+              seq1(1, sym('ws'), sym('expr')),
+              seq(sym('ws'), ',')),
+            sym('ws'), ')'),
 
           // Numeric literal
           // TODO(braden): Advanced numeric literals.
@@ -171,11 +177,20 @@ CLASS({
             sym('var'),
             sym('numLiteral')),
 
+          newExpr: pick([2, 3], seq(gapAfter('new'), sym('ws'), sym('term2'),
+              optional(seq1(1, sym('ws'), sym('argList'))))),
+
+
 
           // TODO(braden): String literals.
           // TODO(braden): Object literals.
           // TODO(braden): Array literals.
-          term: sym('baseTerm'),
+          term2: alt(
+            sym('newExpr'),
+            sym('baseTerm')
+          ),
+
+          term: sym('term2'),
 
           alphaNum: alt(
             range('0', '9'),
@@ -209,6 +224,12 @@ CLASS({
             }
             return base;
           },
+          numLiteral: function(xs) {
+            return self.ExprNumericLiteral.create({ value: xs });
+          },
+          newExpr: function(xs) {
+            return self.ExprNew.create({ expr: xs[0], params: xs[1] || [] });
+          }
         });
         return g;
       }
@@ -776,7 +797,7 @@ CLASS({
 
   methods: [
     function execute() {
-      console.log.json(this.parser.parseString('del . foo  \t[43-1]'));
+      console.log.json(this.parser.parseString('new new Date(3)(4)'));
     },
   ]
 });
