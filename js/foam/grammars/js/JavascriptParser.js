@@ -149,10 +149,28 @@ CLASS({
           __proto__: exprGrammar,
           START: sym('expr'),
 
+          identifier: seq(
+            alt(range('A', 'Z'), range('a', 'z'), '_', '$'),
+            str(repeat(alt(sym('alphaNum'), '_', '$')))
+          ),
+
+          /*
+          dot_or_index: alt(
+            seq1(1, '.', sym('identifier')),
+            seq1(2, '[', sym('ws'), sym('expr'), sym('ws'), ']')),
+
+          var: pick([0, 2], seq(sym('identifier'), sym('ws'), repeat(sym('dot_or_index')))),
+          */
+
           term: alt(
             // Bracketed subexpression
             seq1(2, '(', sym('ws'), sym('expr'), sym('ws'), ')'),
+            sym('identifier'),
+            // TODO(braden): String literals.
+            // TODO(braden): Object literals.
+            // TODO(braden): Array literals.
             // Numeric literal
+            // TODO(braden): Advanced numeric literals.
             str(plus(range('0', '9')))
           ),
 
@@ -175,6 +193,11 @@ CLASS({
             sym('ws')
           ),
         };
+        g.addActions({
+          identifier: function(xs) {
+            return self.ExprVar.create({ name: xs[0] + xs[1] });
+          }
+        });
         return g;
       }
     },
@@ -741,7 +764,7 @@ CLASS({
 
   methods: [
     function execute() {
-      console.log.json(this.parser.parseString('delete(4)'));
+      console.log.json(this.parser.parseString('del + 7'));
     },
   ]
 });
