@@ -233,12 +233,19 @@ CLASS({
 
           objectLiteral: bracketed('{', ',', '}', sym('objectKey')),
 
+          identList: bracketed('(', ',', ')', sym('identifier')),
+          // See below for block.
+          functionLiteral: pick([2, 4], seq('function', sym('ws'),
+              sym('identList'), sym('ws'), sym('block'))),
+
           term0: alt(
             sym('arrayLiteral'),
             sym('objectLiteral'),
             sym('stringLiteral'),
+            sym('functionLiteral'),
             sym('numLiteral'),
             sym('var')),
+
 
           // Level 1: bracketed subexpressions
           bracketedSubExpr: seq1(2, '(', sym('ws'), sym('expr'), sym('ws'), ')'),
@@ -266,6 +273,33 @@ CLASS({
           // Master term rule for use by ExprGrammar.
           term: sym('term3'),
 
+
+
+          // Statements!
+          block: seq1(2, '{', sym('ws'), repeat(sym('statement'), sym('ws')), sym('ws'), '}'),
+
+          nonemptyStatement: alt(
+            sym('block'),
+            sym('ifStmt'),
+            sym('forInStmt'),
+            sym('forOfStmt'),
+            sym('forStmt'),
+            sym('whileStmt'),
+            sym('doWhileStmt'),
+            sym('switchStmt'),
+            sym('tryCatchStmt'),
+            sym('withStmt'),
+            sym('throwStmt'),
+            sym('returnStmt'),
+            sym('breakStmt'),
+            sym('continueStmt'),
+            sym('debuggerStmt'),
+            sym('functionLiteral'),
+            sym('varDeclStmt')
+          ),
+
+
+          statement: alt(sym('emptyStmt'), sym('nonemptyStatement')),
 
           // General helpers
           identifier: str(seq(
