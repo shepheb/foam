@@ -151,46 +151,70 @@ CLASS({
           __proto__: exprGrammar,
           START: sym('expr'),
 
+          // Here's the order of precedence for the special expressions, which
+          // is pretty tricky in JS. Actually, this is simplified by disallowing
+          // new without argument lists. That's nestable to the right and makes
+          // parsing ambiguous without state so far as I can tell. (With state,
+          // we can count the number of open "new"s and turn calls into
+          // new-with-args depth-first.)
+          // - literals (strings, numbers, array and object literals, etc.)
+          // - (grouped subexpressions)
+          // - new with an argument list
+          // - foo(bar), foo.bar and foo[bar] chains
+          //   - Note that the first fragment of one of these can be eg.
+          //     new Date().hours but not new Date.hours
+          // - new without args. these are right-associative and nestable.
+          // TODO(braden): new without args. Makes a huge mess of the parser.
+
+          // Level 0: Literals
+          var: sym('identifier'),
+
+          numLiteral: str(seq(range('1', '9'), str(repeat(range('0', '9'))))),
+          // TODO(braden): Advanced numeric literals.
+          // TODO(braden): String literals.
+          // TODO(braden): Object literals.
+          // TODO(braden): Array literals.
+
+          term0: alt(sym('numLiteral'), sym('var')),
+
+          // Level 1: bracketed subexpressions
+          bracketedSubExpr: seq1(2, '(', sym('ws'), sym('expr'), sym('ws'), ')'),
+          term1: alt(
+            sym('bracketedSubExpr'),
+            sym('term0')
+          ),
+
+          // Level 2: new with an argument list
+          newWithArgs: pick([2, 4], seq(gapAfter('new'), sym('ws'),
+              sym('term1'), sym('ws'), sym('argList'))),
+          term2: alt(
+            sym('newWithArgs'),
+            sym('term1')
+          ),
+
+          // Level 3: Function calls (not new), foo.bar and foo[bar].
+          dot_index_call: alt(
+            seq1(1, sym('ws'), sym('argList')),
+            seq1(3, sym('ws'), '.', sym('ws'), sym('identifier')),
+            seq1(3, sym('ws'), '[', sym('ws'), sym('expr'), sym('ws'), ']')),
+
+          term3: seq(sym('term2'), repeat(sym('dot_index_call'))),
+
+          // Master term rule for use by ExprGrammar.
+          term: sym('term3'),
+
+
+          // General helpers
           identifier: str(seq(
             alt(range('A', 'Z'), range('a', 'z'), '_', '$'),
             str(repeat(alt(sym('alphaNum'), '_', '$')))
           )),
-
-          dot_or_index: alt(
-            seq1(3, sym('ws'), '.', sym('ws'), sym('identifier')),
-            seq1(3, sym('ws'), '[', sym('ws'), sym('expr'), sym('ws'), ']')),
-
-          var: seq(sym('identifier'), repeat(sym('dot_or_index'))),
 
           argList: seq1(1, '(',
             repeat(
               seq1(1, sym('ws'), sym('expr')),
               seq(sym('ws'), ',')),
             sym('ws'), ')'),
-
-          // Numeric literal
-          // TODO(braden): Advanced numeric literals.
-          numLiteral: str(seq(range('1', '9'), str(repeat(range('0', '9'))))),
-          bracketedSubExpr: seq1(2, '(', sym('ws'), sym('expr'), sym('ws'), ')'),
-          baseTerm: alt(
-            sym('bracketedSubExpr'),
-            sym('var'),
-            sym('numLiteral')),
-
-          newExpr: pick([2, 3], seq(gapAfter('new'), sym('ws'), sym('term2'),
-              optional(seq1(1, sym('ws'), sym('argList'))))),
-
-
-
-          // TODO(braden): String literals.
-          // TODO(braden): Object literals.
-          // TODO(braden): Array literals.
-          term2: alt(
-            sym('newExpr'),
-            sym('baseTerm')
-          ),
-
-          term: sym('term2'),
 
           alphaNum: alt(
             range('0', '9'),
@@ -212,24 +236,31 @@ CLASS({
           ),
         };
         g.addActions({
+          numLiteral: function(xs) {
+            return self.ExprNumericLiteral.create({ value: xs });
+          },
           var: function(xs) {
-            var base = self.ExprVar.create({ name: xs[0] });
+            return self.ExprVar.create({ name: xs });
+          },
+          newWithArgs: function(xs) {
+            console.log('new with args', xs);
+            return self.ExprNew.create({ expr: xs[0], params: xs[1] });
+          },
+          term3: function(xs) { // Chain of dots, indexing and calls.
+            // [ term2, [dot_or_index...] ]
+            var base = xs[0];
             for (var i = 0; i < xs[1].length; i++) {
               var x = xs[1][i];
               if (typeof x === 'string') { // .foo
                 base = self.ExprDot.create({ target: base, selector: x });
-              } else {
+              } else if (Array.isArray(x)) { // (foo, bar, baz)
+                base = self.ExprCall.create({ expr: base, params: x });
+              } else { // [foo]
                 base = self.ExprIndex.create({ target: base, selector: x });
               }
             }
             return base;
           },
-          numLiteral: function(xs) {
-            return self.ExprNumericLiteral.create({ value: xs });
-          },
-          newExpr: function(xs) {
-            return self.ExprNew.create({ expr: xs[0], params: xs[1] || [] });
-          }
         });
         return g;
       }
@@ -797,7 +828,9 @@ CLASS({
 
   methods: [
     function execute() {
-      console.log.json(this.parser.parseString('new new Date(3)(4)'));
+      var p = this.parser.parseString('new Date().setHours(15)');
+      console.log.json(p);
+      console.log.json(p.tail);
     },
   ]
 });
