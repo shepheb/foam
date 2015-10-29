@@ -20,6 +20,7 @@ CLASS({
   requires: [
     'foam.grammars.ExprGrammar',
     'foam.grammars.js.ast.Expr',
+    'foam.grammars.js.ast.ExprArrayLiteral',
     'foam.grammars.js.ast.ExprAssignment',
     'foam.grammars.js.ast.ExprBinOp',
     'foam.grammars.js.ast.ExprCall',
@@ -64,6 +65,18 @@ CLASS({
           return p2;
         };
 
+        // Takes four parsers: left, sep, right, element.
+        // eg. [ , ] expr for [array, literals].
+        // The resulting parser returns an array of element's results.
+        // Whitespace is ignored in between the parts.
+        // 0 elements is allowed.
+        var bracketed = function(l, s, r, e) {
+          return seq1(1, l,
+            repeat(
+              seq1(1, sym('ws'), e),
+              seq(sym('ws'), s)),
+            sym('ws'), r);
+        };
         var eg = this.ExprGrammar.create();
         var exprGrammar = eg.build({
           symbolName: 'expr',
@@ -147,6 +160,7 @@ CLASS({
           ]
         });
 
+
         var g = {
           __proto__: exprGrammar,
           START: sym('expr'),
@@ -197,7 +211,12 @@ CLASS({
           // TODO(braden): Object literals.
           // TODO(braden): Array literals.
 
-          term0: alt(sym('numLiteral'), sym('var')),
+          arrayLiteral: bracketed('[', ',', ']', sym('expr')),
+
+          term0: alt(
+            sym('arrayLiteral'),
+            sym('numLiteral'),
+            sym('var')),
 
           // Level 1: bracketed subexpressions
           bracketedSubExpr: seq1(2, '(', sym('ws'), sym('expr'), sym('ws'), ')'),
@@ -232,11 +251,7 @@ CLASS({
             str(repeat(alt(sym('alphaNum'), '_', '$')))
           )),
 
-          argList: seq1(1, '(',
-            repeat(
-              seq1(1, sym('ws'), sym('expr')),
-              seq(sym('ws'), ',')),
-            sym('ws'), ')'),
+          argList: bracketed('(', ',', ')', sym('expr')),
 
           alphaNum: alt(
             range('0', '9'),
@@ -260,7 +275,6 @@ CLASS({
         g.addActions({
           decimalLiteral: function(xs) {
             // [base, decimal, opt_exponentiator]
-            console.log.json('decimalLiteral', xs);
             var text = xs[0];
             var value = +(xs[0]); // As a decimal number.
             if (typeof xs[1] !== 'undefined') {
@@ -289,6 +303,10 @@ CLASS({
           binLiteral: function(xs) {
             return self.ExprNumericLiteral.create({ text: xs,
                 value: parseInt(xs, 2), base: 2 });
+          },
+
+          arrayLiteral: function(xs) {
+            return self.ExprArrayLiteral.create({ elements: xs });
           },
 
           var: function(xs) {
@@ -880,9 +898,8 @@ CLASS({
 
   methods: [
     function execute() {
-      var p = this.parser.parseString('0b1101');
+      var p = this.parser.parseString('[1+2, 2, 3][0]');
       console.log.json(p);
-      console.log.json(p.tail);
     },
   ]
 });
