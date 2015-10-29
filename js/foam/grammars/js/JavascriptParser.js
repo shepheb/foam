@@ -169,8 +169,30 @@ CLASS({
           // Level 0: Literals
           var: sym('identifier'),
 
-          numLiteral: str(seq(range('1', '9'), str(repeat(range('0', '9'))))),
-          // TODO(braden): Advanced numeric literals.
+          decimalDigit: range('0', '9'),
+          exponentiator: seq('e', optional('-'), plus(sym('decimalDigit'))),
+          decimalLiteral: seq(
+            // First part is a string of decimal digits. Allowed to start with 0
+            // in Javascript.
+            str(plus(sym('decimalDigit'))),
+            // Followed by an optional decimal point and trailing value.
+            // Note that "3." is legal!
+            optional(seq1(1, '.', optional(str(repeat(sym('decimalDigit')))))),
+            // And finally an optional exponentiator.
+            optional(sym('exponentiator'))),
+
+          hexDigit: alt(sym('decimalDigit'), range('a', 'f'), range('A', 'F')),
+          hexLiteral: seq1(1, '0x', str(plus(sym('hexDigit')))),
+
+          octLiteral: seq1(1, '0o', str(plus(range('0', '7')))),
+          binLiteral: seq1(1, '0b', str(plus(alt('0', '1')))),
+
+          numLiteral: alt(
+            sym('hexLiteral'),
+            sym('octLiteral'),
+            sym('binLiteral'),
+            sym('decimalLiteral')),
+
           // TODO(braden): String literals.
           // TODO(braden): Object literals.
           // TODO(braden): Array literals.
@@ -236,9 +258,39 @@ CLASS({
           ),
         };
         g.addActions({
-          numLiteral: function(xs) {
-            return self.ExprNumericLiteral.create({ value: xs });
+          decimalLiteral: function(xs) {
+            // [base, decimal, opt_exponentiator]
+            console.log.json('decimalLiteral', xs);
+            var text = xs[0];
+            var value = +(xs[0]); // As a decimal number.
+            if (typeof xs[1] !== 'undefined') {
+              value = +(xs[0] + '.' + xs[1]);
+              text += '.' + xs[1];
+            }
+            if (xs[2]) {
+              var expText = 'e' + (xs[2][1] || '') + xs[2][2];
+              text += expText;
+              value *= Math.pow(10, +(expText.substring(1)));
+            }
+
+            return self.ExprNumericLiteral.create({
+              text: text,
+              value: value
+            });
           },
+          octLiteral: function(xs) {
+            return self.ExprNumericLiteral.create({ text: xs,
+                value: parseInt(xs, 8), base: 8 });
+          },
+          hexLiteral: function(xs) {
+            return self.ExprNumericLiteral.create({ text: xs,
+                value: parseInt(xs, 16), base: 16 });
+          },
+          binLiteral: function(xs) {
+            return self.ExprNumericLiteral.create({ text: xs,
+                value: parseInt(xs, 2), base: 2 });
+          },
+
           var: function(xs) {
             return self.ExprVar.create({ name: xs });
           },
@@ -828,7 +880,7 @@ CLASS({
 
   methods: [
     function execute() {
-      var p = this.parser.parseString('new Date().setHours(15)');
+      var p = this.parser.parseString('0b1101');
       console.log.json(p);
       console.log.json(p.tail);
     },

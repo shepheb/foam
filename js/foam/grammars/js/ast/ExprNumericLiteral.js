@@ -28,5 +28,16 @@ CLASS({
       required: true,
       documentation: 'The actual numeric value as a Javascript number.',
     },
+    {
+      name: 'text',
+      required: true,
+      documentation: 'The Javascript text representation of the number. Does ' +
+          'NOT include any prefix like 0x.',
+    },
+    {
+      name: 'base',
+      defaultValue: 10,
+      documentation: 'The numberic base in which this number\'s text is written.',
+    },
   ]
 });
