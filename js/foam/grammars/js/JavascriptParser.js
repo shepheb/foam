@@ -30,6 +30,7 @@ CLASS({
     'foam.grammars.js.ast.ExprNumericLiteral',
     'foam.grammars.js.ast.ExprPrefix',
     'foam.grammars.js.ast.ExprPostfix',
+    'foam.grammars.js.ast.ExprStringLiteral',
     'foam.grammars.js.ast.ExprVar',
     'foam.grammars.js.ast.Stmt',
     'foam.grammars.js.ast.StmtExpr',
@@ -213,8 +214,21 @@ CLASS({
 
           arrayLiteral: bracketed('[', ',', ']', sym('expr')),
 
+          dqString: seq1(1, '"', str(repeat(
+              alt(
+                seq1(1, '\\', '"'),
+                notChar('"')))),
+            '"'),
+          sqString: seq1(1, "'", str(repeat(
+              alt(
+                seq1(1, '\\', "'"),
+                notChar("'")))),
+            "'"),
+          stringLiteral: alt(sym('dqString'), sym('sqString')),
+
           term0: alt(
             sym('arrayLiteral'),
+            sym('stringLiteral'),
             sym('numLiteral'),
             sym('var')),
 
@@ -307,6 +321,10 @@ CLASS({
 
           arrayLiteral: function(xs) {
             return self.ExprArrayLiteral.create({ elements: xs });
+          },
+
+          stringLiteral: function(xs) {
+            return self.ExprStringLiteral.create({ value: xs });
           },
 
           var: function(xs) {
@@ -898,7 +916,7 @@ CLASS({
 
   methods: [
     function execute() {
-      var p = this.parser.parseString('[1+2, 2, 3][0]');
+      var p = this.parser.parseString('"abc \\"def\\"" + \'gh\'');
       console.log.json(p);
     },
   ]
