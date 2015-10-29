@@ -28,6 +28,7 @@ CLASS({
     'foam.grammars.js.ast.ExprIndex',
     'foam.grammars.js.ast.ExprNew',
     'foam.grammars.js.ast.ExprNumericLiteral',
+    'foam.grammars.js.ast.ExprObjectLiteral',
     'foam.grammars.js.ast.ExprPrefix',
     'foam.grammars.js.ast.ExprPostfix',
     'foam.grammars.js.ast.ExprStringLiteral',
@@ -208,10 +209,6 @@ CLASS({
             sym('binLiteral'),
             sym('decimalLiteral')),
 
-          // TODO(braden): String literals.
-          // TODO(braden): Object literals.
-          // TODO(braden): Array literals.
-
           arrayLiteral: bracketed('[', ',', ']', sym('expr')),
 
           dqString: seq1(1, '"', str(repeat(
@@ -226,8 +223,19 @@ CLASS({
             "'"),
           stringLiteral: alt(sym('dqString'), sym('sqString')),
 
+          objectKey: pick([0, 4], seq(
+            alt(sym('stringLiteral'), sym('var')),
+            sym('ws'),
+            ':',
+            sym('ws'),
+            sym('expr')
+          )),
+
+          objectLiteral: bracketed('{', ',', '}', sym('objectKey')),
+
           term0: alt(
             sym('arrayLiteral'),
+            sym('objectLiteral'),
             sym('stringLiteral'),
             sym('numLiteral'),
             sym('var')),
@@ -321,6 +329,11 @@ CLASS({
 
           arrayLiteral: function(xs) {
             return self.ExprArrayLiteral.create({ elements: xs });
+          },
+
+          objectLiteral: function(xs) {
+            // Each element is an array [key, value]. Just store that for now.
+            return self.ExprObjectLiteral.create({ elements: xs });
           },
 
           stringLiteral: function(xs) {
@@ -916,7 +929,7 @@ CLASS({
 
   methods: [
     function execute() {
-      var p = this.parser.parseString('"abc \\"def\\"" + \'gh\'');
+      var p = this.parser.parseString('{ "k": 2+3, k2 : [a,b] }');
       console.log.json(p);
     },
   ]
