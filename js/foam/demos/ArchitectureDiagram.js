@@ -49,12 +49,12 @@ CLASS({
       var V         = this.Box.create({color: 'white', text: "V",          background: 'gray',   width: 100, height: 100, x:-310, font: '22pt Arial'});
       var C         = this.Box.create({color: 'white', text: "C",          background: 'gray',   width: 35,  height: 35,  x:-310, font: '22pt Arial'});
       var meta      = this.Box.create({color: 'white', text: "Meta",       background: 'black',  width: 300, height: 100, x:-310, font: '22pt Arial', a: Math.PI/2, });
-      var ime       = this.Box.create({color: 'white', text: "IME",        background: 'orange', width: 300, height: 0,   x:750,  y:450, font: '22pt Arial'});
-      var js        = this.Box.create({color: 'white', text: "JavaScript", background: 'red',    width: 0,   height: 50,  x:750,  y:800, font: '16pt Arial'});
-      var java      = this.Box.create({color: 'white', text: "Java",       background: 'red',    width: 50,  height: 0,   x:1050, y:550, font: '16pt Arial'});
-      var dart      = this.Box.create({color: 'white', text: "Swift",      background: 'red',    width: 50,  height: 0,   x:1100, y:550, font: '16pt Arial'});
-      var cpp       = this.Box.create({color: 'white', text: "C++",        background: 'red',    width: 50,  height: 0,   x:1150, y:550, font: '16pt Arial'});
-      var future    = this.Box.create({color: 'white', text: "...",        background: 'red',    width: 100, height: 0,   x:1200, y:550, font: '16pt Arial'});
+      var ime       = this.Box.create({color: 'white', text: "Tools",        background: 'orange', width: 300, height: 0,   x:750,  y:450, font: '22pt Arial'});
+      var js        = this.Box.create({color: 'white', text: "Javascript", background: 'red',    width: 0,   height: 50,  x:750,  y:800, font: '22pt Arial'});
+      var java      = this.Box.create({color: 'white', text: "Java",       background: 'red',    width: 50,  height: 0,   x:1050, y:550, font: '16pt Arial', border: '#e00' });
+      var dart      = this.Box.create({color: 'white', text: "Swift",      background: 'red',    width: 50,  height: 0,   x:1100, y:550, font: '16pt Arial', border: '#e00' });
+      var cpp       = this.Box.create({color: 'white', text: "C++",        background: 'red',    width: 50,  height: 0,   x:1150, y:550, font: '16pt Arial', border: '#e00' });
+      var future    = this.Box.create({color: 'white', text: "...",        background: 'red',    width: 100, height: 0,   x:1200, y:550, font: '16pt Arial', border: '#c00' });
       var dev       = this.Circle.create({color:'red', r:15, x:800-15, y:-25});
       var timer     = this.timer;
 
@@ -79,10 +79,10 @@ CLASS({
       }.bind(this));
 
       M.compile([
-        [1000, function() { js.width = 300; }, B],
+        [1000, function() { js.width = 300; }, M.easeIn(0.2)],
         [1000],
-        [2000, function() { events.x = 750;  }, M.easeIn(0.3).o(M.oscillate(0.3, 0.02, 2))],
-        [2000, function() { events.y = 750; }, M.accelerate.o(M.bounce(0.2, 0.05, 2))],
+        [2000, function() { events.x = 750;  }, M.easeIn(0.3)],
+        [2000, function() { events.y = 750; }, M.accelerate],
         [1000],
         [
           [2900, function() { reactive.x = 750; reactive.a = Math.PI*2; }, M.easeOut(1.0)],
@@ -105,13 +105,13 @@ CLASS({
         [1000],
         [
           [5000, function() { meta.width += 250; }],
-          [[1000], [2000, function() { java.height = 300; }, B]],
-          [[2000], [2000, function() { dart.height = 300; }, B]],
-          [[3000], [2000, function() { cpp.height = 300; }, B]],
-          [[5000], [2000, function() { future.height = 300; }, B]]
+          [[1000], [2000, function() { java.height = 300; }, M.easeIn(0.2)]],
+          [[2000], [2000, function() { dart.height = 300; }, M.easeIn(0.2)]],
+          [[3000], [2000, function() { cpp.height = 300; }, M.easeIn(0.2)]],
+          [[5000], [2000, function() { future.height = 300; }, M.easeIn(0.2)]]
         ],
         [1000],
-        [1000, function() { dev.y = 350-dev.r; }, M.accelerate.o(M.bounce(0.2, 0.15, 2))],
+        [1000, function() { dev.y = 350-dev.r; }, M.accelerate],
         [1000, function() {
           var s = 50;
           var w = 6*s;
@@ -123,31 +123,31 @@ CLASS({
           V.x         -= w*2/3; V.width         += w/3;
           C.x         -= w/3;   C.width         += w/3; w-=s;
           meta.x      -= w;     meta.width      += w;   w-=s;
-        }, B],
+        }, M.easeIn(0.2)],
         [9000, function() { dev.x = 475; }, M.ease(0.2, 0.2)],
       ])();
     },
 
     // TODO: Make a trait
     paintChildren: function() {
-      // paint children inverted and slated below reflection point
-      this.canvas.save();
-      this.canvas.translate(850*0.6,850);
-      this.canvas.scale(1,-1);
-      this.canvas.translate(0,-850);
-      this.canvas.transform(1,0,-0.6,1,0,0);
-
-      this.SUPER();
-
-      // cause fading with white gradient
-      var fade = this.canvas.createLinearGradient(0,750,0,-1000);
-      fade.addColorStop(0,   'rgba(255,255,255,0.82)');
-      fade.addColorStop(0.2, 'rgba(255,255,255,1)');
-      fade.addColorStop(1,   'rgba(255,255,255,1)');
-      this.canvas.fillStyle = fade;
-      this.canvas.fillRect(0, 850, 1500, -1000);
-      this.canvas.restore();
-
+//      // paint children inverted and slated below reflection point
+//      this.canvas.save();
+//      this.canvas.translate(850*0.6,850);
+//      this.canvas.scale(1,-1);
+//      this.canvas.translate(0,-850);
+//      this.canvas.transform(1,0,-0.6,1,0,0);
+//
+//      this.SUPER();
+//
+//      // cause fading with white gradient
+//      var fade = this.canvas.createLinearGradient(0,750,0,-1000);
+//      fade.addColorStop(0,   'rgba(255,255,255,0.82)');
+//      fade.addColorStop(0.2, 'rgba(255,255,255,1)');
+//      fade.addColorStop(1,   'rgba(255,255,255,1)');
+//      this.canvas.fillStyle = fade;
+//      this.canvas.fillRect(0, 850, 1500, -1000);
+//      this.canvas.restore();
+//
       // paint children in normally
       this.SUPER();
     }

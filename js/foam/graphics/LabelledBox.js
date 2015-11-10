@@ -25,7 +25,7 @@ CLASS({
       model_: 'ColorProperty',
       name: 'border',
       label: 'Border Color',
-      defaultValue: 'black'
+      defaultValueFn: function() { return this.background; }
     },
     {
       model_: 'FloatProperty',
@@ -33,7 +33,6 @@ CLASS({
       label: 'Angle'
     },
     { name: 'align',  defaultValue: 'center' },
-    { name: 'border', defaultValue: 'black' }
   ],
 
   methods: {
@@ -50,13 +49,13 @@ CLASS({
 
       this.SUPER();
 
-      var grad = c.createLinearGradient(0, 0, this.width, this.height);
-      grad.addColorStop(  0, 'rgba(0,0,0,0.35)');
-      grad.addColorStop(0.5, 'rgba(0,0,0,0)');
-      grad.addColorStop(  1, 'rgba(255,255,255,0.45)');
+      //var grad = c.createLinearGradient(0, 0, this.width, this.height);
+      //grad.addColorStop(  0, 'rgba(0,0,0,0.35)');
+      //grad.addColorStop(0.5, 'rgba(0,0,0,0)');
+      //grad.addColorStop(  1, 'rgba(255,255,255,0.45)');
 
-      c.fillStyle = grad;
-      c.fillRect(1, 1, this.width-2, this.height-2);
+      //c.fillStyle = 
+      //c.fillRect(1, 1, this.width-2, this.height-2);
 
       // Redraw text over top of linear gradient so that it's clearer
       c.fillStyle = this.color;
