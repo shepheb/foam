@@ -1,0 +1,137 @@
+<slides style="width: 100%;height:100%;"
+        oninit="this.X.foam.memento.FragmentMementoMgr.create({ mementoValue:
+                this.memento$ }, this.Y)">
+
+  <slide>
+    <div class="flex-row">
+      <div class="card center" style="padding: 5%;">
+        <span class="flex-col" style="font-size: 32px;">
+          <span class="big-heading center">Introducing</span>
+          <p class="center">
+            <foam model="foam.demos.graphics.Logo" text="FOAM" width="360"
+                  height="140" />
+          </p>
+          <span class="small-heading center">
+            <font color="#33f">F</font>eature <font color="#f00">O</font>riented <font color="#fc0">A</font>ctive <font color="#3c0">M</font>odeller
+          </span>
+          <br />
+          <p class="center">
+            <a href="http://foamdev.com">foamdev.com</a>
+          </p>
+          <br />
+          <p class="center">
+            Braden Shepherdson, <a href="mailto:braden@google.com">braden@google.com</a>
+          </p>
+        </span>
+      </div>
+    </div>
+  </slide>
+
+  <slide>
+    <foam model="foam.demos.FOAMComponents" />
+  </slide>
+
+  <slide>
+    <div class="heading-card">
+      <div class="flex-row">
+        <div class="small-color-block blue">&nbsp;</div>
+        <div class="flex-grow content small-heading">History Lesson: Feature-Oriented OS</div>
+      </div>
+    </div>
+    <div class="card flex-col center flex-grow" style="overflow: auto">
+      <iframe src="./demos/UnixSimulator.html"></iframe>
+    </div>
+  </slide>
+
+  <slide>
+    <div class="heading-card">
+      <div class="flex-row">
+        <div class="small-color-block red">&nbsp;</div>
+        <div class="flex-grow content small-heading">Architecture</div>
+      </div>
+    </div>
+    <div class="card flex-col center flex-grow" style="overflow: auto">
+      <div class="scale085 origin0"><foam model="foam.demos.ArchitectureDiagram" /></div>
+    </div>
+  </slide>
+
+  <slide>
+    <div class="heading-card">
+      <div class="flex-row">
+        <div class="small-color-block red">&nbsp;</div>
+        <div class="flex-grow content small-heading">Holistic</div>
+      </div>
+    </div>
+    <div class="card flex-col center flex-grow" style="overflow: auto">
+      <iframe src="./demos/demo10b2.html"></iframe>
+    </div>
+  </slide>
+
+  <slide>
+    <div class="heading-card">
+      <div class="flex-row">
+        <div class="small-color-block green">&nbsp;</div>
+        <div class="flex-grow content small-heading">Reusable Controllers</div>
+      </div>
+    </div>
+    <div class="card flex-row center flex-grow" style="overflow: auto">
+      <a href="http://foam-framework.github.io/foam/apps/mbug/main.html" target="_blank"><img class="shadow0515" style="max-height:530px" src="./demos/democat/MBug.png"></a>
+      <a href="http://foam-framework.github.io/foam/apps/gmail/main.html" target="_blank"><img class="shadow0515" style="margin-left: 200px;border:1px solid;max-height:530px" src="./demos/democat/GMail.png"></a>
+      <a href="/index.html?model=foam.tutorials.todo.TodoApp" target="_blank"><img class="shadow0515" style="margin-left: 200px;border:1px solid;max-height:530px" src="./demos/democat/TodoBrowser.png"></a>
+    </div>
+  </slide>
+
+  <slide>
+    <div class="heading-card">
+      <div class="flex-row">
+        <div class="small-color-block blue">&nbsp;</div>
+        <div class="flex-grow content small-heading">OS for The World's Information</div>
+      </div>
+    </div>
+    <div class="flex-row flex-stretch flex-shrink">
+      <div class="card flex flex-col flex-grow3">
+      <center style="width:1100px">
+        <iframe src="./demos/GoogleSimulator.html"></iframe>
+      </center>
+        <i><font size="+2" color="blue">Organize the world's information (y-axis) and make it universally accessible (z-axis) and useful (x-axis).</font></i>
+      </div>
+    </div>
+  </slide>
+
+  <slide>
+    <div class="heading-card">
+      <div class="flex-row">
+        <div class="small-color-block blue">&nbsp;</div>
+        <div class="flex-grow content small-heading">Summary</div>
+      </div>
+    </div>
+    <div class="flex-grow1 flex-stretch">
+      <center>
+        <foam model="foam.demos.FOAMDiagram" x="2" y="2" width="1600" height="800" />
+      </center>
+    </div>
+  </slide>
+
+  <slide>
+    <div class="heading-card">
+      <div class="flex-row">
+        <div class="small-color-block red">&nbsp;</div>
+        <div class="flex-grow content small-heading">Efficiency</div>
+      </div>
+    </div>
+    <div class="flex-row" style="height: 100%;">
+      <div class="center" style="padding: 5%; min-width: 80%">
+        <span class="flex-col" style="font-size: 32px;">
+          <div style="font-size:48px;color:gray;">
+            <i style="color:red;">Efficiency</i> is <font color="#33f">F</font><font color="#f00">O</font><font color="#fc0">A</font><font color="#3c0">M</font>'s Value Proposition<br>
+            Application <font color="red">Performance</font><br>
+            Application <font color="red">Size</font><br>
+            Developer <font color="red">Efficiency</font><br><br>
+            <i style="color:#3c0;font-size:50px;">"Fast Apps Fast"</i><br>
+          </div>
+        </span>
+      </div>
+    </div>
+  </slide>
+
+</slides>
