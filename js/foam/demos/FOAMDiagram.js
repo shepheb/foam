@@ -42,7 +42,8 @@ CLASS({
       var self = this;
       function box(m) {
         m.color = m.color || 'blue';
-        m.background = m.background || 'white';
+        m.background = m.background || '#e0e0e0';
+        m.border = m.border || 'black';
         m.font = 'bold ' + (m.font || 22 ) + 'pt Arial';
         m.alpha = m.alpha || 0;
 
