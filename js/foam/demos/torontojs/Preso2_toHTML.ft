@@ -63,7 +63,7 @@
       </div>
     </div>
     <div class="card flex-col center flex-grow" style="overflow: auto">
-      <iframe src="./demos/demo10b2.html"></iframe>
+      <div class="scale085 origin0"><foam model="foam.demos.FullStackDiagram" /></div>
     </div>
   </slide>
 
