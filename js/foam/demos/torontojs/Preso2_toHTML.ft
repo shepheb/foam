@@ -59,7 +59,7 @@
     <div class="heading-card">
       <div class="flex-row">
         <div class="small-color-block red">&nbsp;</div>
-        <div class="flex-grow content small-heading">Holistic</div>
+        <div class="flex-grow content small-heading">Full Stack</div>
       </div>
     </div>
     <div class="card flex-col center flex-grow" style="overflow: auto">

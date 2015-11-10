@@ -25,7 +25,7 @@ CLASS({
   ],
 
   properties: [
-    ['width', 1400],
+    ['width', 1500],
     ['height', 600],
     ['background', 'white'],
     {
