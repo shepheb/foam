@@ -305,7 +305,49 @@ CLASS({
       name: 'innerHTML',
       transient: true,
       getter: function() { return this.outputInnerHTML(this.createOutputStream()).toString(); }
-    }
+    },
+    {
+      name: 'minWidth',
+      documentation: 'Allows specifying the minimum width of a view. ' +
+          'This is optional, and only used by views attempting responsive ' +
+          'layouts, such as $$DOC{ref:"foam.browser.u2.StackView"}.',
+      defaultValue: 300
+    },
+    {
+      name: 'minHeight',
+      documentation: 'Allows specifying the minimum height of a view. ' +
+          'This is optional, and only used by views attempting advanced ' +
+          'layouts, such as $$DOC{ref:"foam.u2.ScrollView"}.',
+      defaultValue: 0
+    },
+    {
+      name: 'preferredWidth',
+      documentation: 'Allows specifying the preferred width of a view. ' +
+          'This is optional, and only used by views attempting responsive ' +
+          'layouts, such as $$DOC{ref:"foam.browser.u2.StackView"}.',
+      defaultValue: 400
+    },
+    {
+      name: 'preferredHeight',
+      documentation: 'Allows specifying the preferred height of a view. ' +
+          'This is optional, and only used by views attempting advanced ' +
+          'layouts, such as $$DOC{ref:"foam.u2.ScrollView"}.',
+      defaultValue: 40
+    },
+    {
+      name: 'maxWidth',
+      documentation: 'Allows specifying the maximum width of a view. ' +
+          'This is optional, and only used by views attempting responsive ' +
+          'layouts, such as $$DOC{ref:"foam.browser.u2.StackView"}.',
+      defaultValue: 10000
+    },
+    {
+      name: 'maxHeight',
+      documentation: 'Allows specifying the maximum height of a view. ' +
+          'This is optional, and only used by views attempting advanced ' +
+          'layouts, such as $$DOC{ref:"foam.u2.ScrollView"}.',
+      defaultValue: 10000
+    },
   ],
 
   templates: [
