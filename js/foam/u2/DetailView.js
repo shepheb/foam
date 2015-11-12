@@ -114,7 +114,8 @@ CLASS({
       this.SUPER();
 
       this.Y.registerModel(this.DetailPropertyView, 'foam.u2.PropertyView');
-
+    },
+    function initE() {
       this.add(function(model, properties) {
         if ( ! model ) return 'Set model or data.';
 
