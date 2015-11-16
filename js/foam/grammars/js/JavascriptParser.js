@@ -38,6 +38,7 @@ CLASS({
     'foam.grammars.js.ast.StmtFor',
     'foam.grammars.js.ast.StmtForEach',
     'foam.grammars.js.ast.StmtIf',
+    'foam.grammars.js.ast.StmtReturn',
     'foam.grammars.js.ast.StmtThrow',
     'foam.grammars.js.ast.StmtTryCatch',
     'foam.grammars.js.ast.StmtWhile',
@@ -294,7 +295,7 @@ CLASS({
             sym('tryCatchStmt'),
             //sym('withStmt'),
             sym('throwStmt'),
-            //sym('returnStmt'),
+            sym('returnStmt'),
             //sym('breakStmt'),
             //sym('continueStmt'),
             //sym('debuggerStmt'),
@@ -357,6 +358,8 @@ CLASS({
               optional(seq1(2, 'finally', sym('ws'), sym('statement'))))),
 
           throwStmt: seq1(2, 'throw', sym('ws'), sym('expr'), sym('ws'), ';'),
+
+          returnStmt: seq1(2, 'return', sym('ws'), sym('expr'), sym('ws'), ';'),
 
           // START HERE: adding more statement types. See MDN reference for
           // exacting parsing details.
@@ -513,6 +516,10 @@ CLASS({
             return self.StmtThrow.create({ expr: xs });
           },
 
+          returnStmt: function(xs) {
+            return self.StmtReturn.create({ expr: xs });
+          },
+
           varDeclNoInit: function(xs) {
             return self.VarDecl.create({ name: xs });
           },
@@ -531,7 +538,7 @@ CLASS({
 
   methods: [
     function execute() {
-      var p = this.parser.parseString('throw x[2];');
+      var p = this.parser.parseString('return x[2];');
       console.log.json(p);
     },
   ]
