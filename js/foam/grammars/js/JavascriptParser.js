@@ -36,6 +36,7 @@ CLASS({
     'foam.grammars.js.ast.Stmt',
     'foam.grammars.js.ast.StmtExpr',
     'foam.grammars.js.ast.StmtFor',
+    'foam.grammars.js.ast.StmtForEach',
     'foam.grammars.js.ast.StmtIf',
     'foam.grammars.js.ast.StmtWhile',
     'foam.grammars.js.ast.VarDecl',
@@ -165,7 +166,7 @@ CLASS({
 
         var g = {
           __proto__: exprGrammar,
-          START: sym('ifStmt'),
+          START: sym('statement'),
 
           // Here's the order of precedence for the special expressions, which
           // is pretty tricky in JS. Actually, this is simplified by disallowing
@@ -282,8 +283,7 @@ CLASS({
             sym('emptyStmt'),
             sym('block'),
             sym('ifStmt'),
-            //sym('forInStmt'),
-            //sym('forOfStmt'),
+            sym('forEachStmt'), // for of and for in loops
             //sym('forStmt'),
             //sym('whileStmt'),
             //sym('doWhileStmt'),
@@ -315,6 +315,15 @@ CLASS({
 
           exprStmt: seq1(0, sym('expr'), ';'),
 
+
+          forEachStmt: pick([4, 6, 8, 12], seq(
+              'for', sym('ws'), '(', sym('ws'),
+              alt(sym('varDeclNoInit'), sym('expr')),
+              sym('ws1'), alt('in', 'of'), sym('ws1'),
+              sym('expr'), sym('ws'), ')', sym('ws'), sym('statement'))),
+
+
+
           // START HERE: adding more statement types. See MDN reference for
           // exacting parsing details.
 
@@ -324,6 +333,8 @@ CLASS({
             alt(range('A', 'Z'), range('a', 'z'), '_', '$'),
             str(repeat(alt(sym('alphaNum'), '_', '$')))
           )),
+
+          varDeclNoInit: seq1(2, 'var', sym('ws1'), sym('identifier')),
 
           argList: bracketed('(', ',', ')', sym('expr')),
 
@@ -416,12 +427,24 @@ CLASS({
           },
 
           ifStmt: function(xs) {
-            console.log(xs);
             return self.StmtIf.create({
               condition: xs[0][0],
               ifBlock: xs[0][1],
               elseBlock: xs[1],
             });
+          },
+
+          forEachStmt: function(xs) {
+            return self.StmtForEach.create({
+              variable: xs[0],
+              iterationType: xs[1],
+              target: xs[2],
+              body: xs[3]
+            });
+          },
+
+          varDeclNoInit: function(xs) {
+            return self.VarDecl.create({ name: xs });
           },
         });
         return g;
@@ -431,7 +454,7 @@ CLASS({
 
   methods: [
     function execute() {
-      var p = this.parser.parseString('if ( x < 7 ) { x = 4; y = 1; } else if ( x < 12) { x = 6; } else if (x > 50) { y = -3; } else x = 1;');
+      var p = this.parser.parseString('for( var k of foo.bar ) { foo.baz(k); }');
       console.log.json(p);
     },
   ]
