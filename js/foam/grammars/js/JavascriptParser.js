@@ -38,6 +38,7 @@ CLASS({
     'foam.grammars.js.ast.StmtFor',
     'foam.grammars.js.ast.StmtForEach',
     'foam.grammars.js.ast.StmtIf',
+    'foam.grammars.js.ast.StmtTryCatch',
     'foam.grammars.js.ast.StmtWhile',
     'foam.grammars.js.ast.VarDecl',
   ],
@@ -287,8 +288,9 @@ CLASS({
             sym('forStmt'),
             sym('whileStmt'),
             sym('doWhileStmt'),
+            // TODO(braden): Switch statements. They suck, so I'm ignoring them.
             //sym('switchStmt'),
-            //sym('tryCatchStmt'),
+            sym('tryCatchStmt'),
             //sym('withStmt'),
             //sym('throwStmt'),
             //sym('returnStmt'),
@@ -345,6 +347,13 @@ CLASS({
           doWhileStmt: pick([2, 8], seq(
               'do', sym('ws'), sym('statement'), sym('ws'),
               'while', sym('ws'), '(', sym('ws'), sym('expr'), sym('ws'), ')', sym('ws'), ';')),
+
+          tryCatchStmt: pick([2, 4, 5], seq(
+              'try', sym('ws'), sym('statement'), sym('ws'),
+              optional(pick([4, 8], seq(
+                  'catch', sym('ws'), '(', sym('ws'), sym('identifier'),
+                  sym('ws'), ')', sym('ws'), sym('statement'), sym('ws')))),
+              optional(seq1(2, 'finally', sym('ws'), sym('statement'))))),
 
           // START HERE: adding more statement types. See MDN reference for
           // exacting parsing details.
@@ -488,6 +497,15 @@ CLASS({
             });
           },
 
+          tryCatchStmt: function(xs) {
+            return self.StmtTryCatch.create({
+              tryBlock: xs[0],
+              catchVariable: xs[1] && xs[1][0],
+              catchBlock: xs[1] && xs[1][1],
+              finallyBlock: xs[2]
+            });
+          },
+
           varDeclNoInit: function(xs) {
             return self.VarDecl.create({ name: xs });
           },
@@ -506,7 +524,7 @@ CLASS({
 
   methods: [
     function execute() {
-      var p = this.parser.parseString('do { foo("bar"); } while (foo < 8);');
+      var p = this.parser.parseString('try { failure(foo); } catch( e)  { junk = 43; } finally{x--;}');
       console.log.json(p);
     },
   ]
