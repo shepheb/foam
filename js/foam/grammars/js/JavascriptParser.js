@@ -284,7 +284,7 @@ CLASS({
             sym('block'),
             sym('ifStmt'),
             sym('forEachStmt'), // for of and for in loops
-            //sym('forStmt'),
+            sym('forStmt'),
             //sym('whileStmt'),
             //sym('doWhileStmt'),
             //sym('switchStmt'),
@@ -296,7 +296,7 @@ CLASS({
             //sym('continueStmt'),
             //sym('debuggerStmt'),
             //sym('functionLiteral'),
-            //sym('varDeclStmt'),
+            sym('varDeclStmt'),
             sym('exprStmt')        // For things like function calls and i++.
           ),
 
@@ -323,6 +323,20 @@ CLASS({
               sym('expr'), sym('ws'), ')', sym('ws'), sym('statement'))),
 
 
+          forStmt: pick([4, 6, 8, 12], seq(
+              'for', sym('ws'), '(', sym('ws'),
+              sym('statement'), sym('ws'),
+              sym('exprStmt'), sym('ws'),
+              sym('expr'), sym('ws'), ')', sym('ws'), sym('statement'))),
+
+
+          varDeclStmt: seq1(0, sym('varDecl'), sym('ws'), ';'),
+
+          varDecl: seq1(2, 'var', sym('ws1'),
+              repeat(sym('declaration'), seq(',', sym('ws')))),
+
+          declaration: pick([0, 2], seq(sym('identifier'), sym('ws'),
+              optional(seq1(2, '=', sym('ws'), sym('expr'))))),
 
           // START HERE: adding more statement types. See MDN reference for
           // exacting parsing details.
@@ -443,8 +457,24 @@ CLASS({
             });
           },
 
+          forStmt: function(xs) {
+            return self.StmtFor.create({
+              initializer: xs[0],
+              condition: xs[1],
+              increment: xs[2],
+              block: xs[3]
+            });
+          },
+
           varDeclNoInit: function(xs) {
             return self.VarDecl.create({ name: xs });
+          },
+
+          varDeclStmt: function(xs) {
+            // xs is a list of [name, expr] pairs.
+            return xs.map(function(x) {
+              return self.VarDecl.create({ name: x[0], value: x[1] });
+            });
           },
         });
         return g;
@@ -454,7 +484,7 @@ CLASS({
 
   methods: [
     function execute() {
-      var p = this.parser.parseString('for( var k of foo.bar ) { foo.baz(k); }');
+      var p = this.parser.parseString('for( var i = 0; i < foo.length; i++) { console.log("yay"); }');
       console.log.json(p);
     },
   ]
