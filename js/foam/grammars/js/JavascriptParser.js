@@ -165,7 +165,7 @@ CLASS({
 
         var g = {
           __proto__: exprGrammar,
-          START: sym('expr'),
+          START: sym('ifStmt'),
 
           // Here's the order of precedence for the special expressions, which
           // is pretty tricky in JS. Actually, this is simplified by disallowing
@@ -278,28 +278,46 @@ CLASS({
           // Statements!
           block: seq1(2, '{', sym('ws'), repeat(sym('statement'), sym('ws')), sym('ws'), '}'),
 
-          nonemptyStatement: alt(
+          statement: alt(
+            sym('emptyStmt'),
             sym('block'),
             sym('ifStmt'),
-            sym('forInStmt'),
-            sym('forOfStmt'),
-            sym('forStmt'),
-            sym('whileStmt'),
-            sym('doWhileStmt'),
-            sym('switchStmt'),
-            sym('tryCatchStmt'),
-            sym('withStmt'),
-            sym('throwStmt'),
-            sym('returnStmt'),
-            sym('breakStmt'),
-            sym('continueStmt'),
-            sym('debuggerStmt'),
-            sym('functionLiteral'),
-            sym('varDeclStmt')
+            //sym('forInStmt'),
+            //sym('forOfStmt'),
+            //sym('forStmt'),
+            //sym('whileStmt'),
+            //sym('doWhileStmt'),
+            //sym('switchStmt'),
+            //sym('tryCatchStmt'),
+            //sym('withStmt'),
+            //sym('throwStmt'),
+            //sym('returnStmt'),
+            //sym('breakStmt'),
+            //sym('continueStmt'),
+            //sym('debuggerStmt'),
+            //sym('functionLiteral'),
+            //sym('varDeclStmt'),
+            sym('exprStmt')        // For things like function calls and i++.
           ),
 
+          emptyStmt: literal(';'),
 
-          statement: alt(sym('emptyStmt'), sym('nonemptyStatement')),
+          ifStmt: pick([0, 2], seq(
+              sym('ifChunk'),
+              sym('ws'), optional(sym('else')))),
+
+          ifChunk: pick([4, 8], seq(
+              'if', sym('ws'), '(', sym('ws'), sym('expr'), sym('ws'), ')',
+              sym('ws'), sym('statement'))),
+
+          'else': seq1(2, 'else', sym('ws'), sym('statement')),
+
+
+          exprStmt: seq1(0, sym('expr'), ';'),
+
+          // START HERE: adding more statement types. See MDN reference for
+          // exacting parsing details.
+
 
           // General helpers
           identifier: str(seq(
@@ -413,7 +431,7 @@ CLASS({
 
   methods: [
     function execute() {
-      var p = this.parser.parseString('{ "k": 2+3, k2 : [a,b] }');
+      var p = this.parser.parseString('if ( x < 7 ) { x = 4; y = 1; } else if ( x < 12) { x = 6; } else if (x > 50) { y = -3; } else x = 1;');
       console.log.json(p);
     },
   ]
