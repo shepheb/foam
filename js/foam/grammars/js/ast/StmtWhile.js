@@ -31,5 +31,11 @@ CLASS({
       required: true,
       subType: 'foam.grammars.js.ast.Stmt',
     },
+    {
+      model_: 'BooleanProperty',
+      name: 'doWhile',
+      documentation: 'Set true if this is a do-while loop.',
+      defaultValue: false
+    },
   ]
 });
