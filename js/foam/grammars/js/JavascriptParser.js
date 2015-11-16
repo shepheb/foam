@@ -285,7 +285,7 @@ CLASS({
             sym('ifStmt'),
             sym('forEachStmt'), // for of and for in loops
             sym('forStmt'),
-            //sym('whileStmt'),
+            sym('whileStmt'),
             //sym('doWhileStmt'),
             //sym('switchStmt'),
             //sym('tryCatchStmt'),
@@ -337,6 +337,10 @@ CLASS({
 
           declaration: pick([0, 2], seq(sym('identifier'), sym('ws'),
               optional(seq1(2, '=', sym('ws'), sym('expr'))))),
+
+          whileStmt: pick([4, 8], seq(
+              'while', sym('ws'), '(', sym('ws'), sym('expr'), sym('ws'), ')', sym('ws'),
+              sym('statement'))),
 
           // START HERE: adding more statement types. See MDN reference for
           // exacting parsing details.
@@ -466,6 +470,13 @@ CLASS({
             });
           },
 
+          whileStmt: function(xs) {
+            return self.StmtWhile.create({
+              condition: xs[0],
+              block: xs[1]
+            });
+          },
+
           varDeclNoInit: function(xs) {
             return self.VarDecl.create({ name: xs });
           },
@@ -484,7 +495,7 @@ CLASS({
 
   methods: [
     function execute() {
-      var p = this.parser.parseString('for( var i = 0; i < foo.length; i++) { console.log("yay"); }');
+      var p = this.parser.parseString('while(foo < 8) { foo("bar"); }');
       console.log.json(p);
     },
   ]
