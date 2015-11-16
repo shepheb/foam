@@ -34,6 +34,9 @@ CLASS({
     'foam.grammars.js.ast.ExprStringLiteral',
     'foam.grammars.js.ast.ExprVar',
     'foam.grammars.js.ast.Stmt',
+    'foam.grammars.js.ast.StmtBreak',
+    'foam.grammars.js.ast.StmtContinue',
+    'foam.grammars.js.ast.StmtDebugger',
     'foam.grammars.js.ast.StmtExpr',
     'foam.grammars.js.ast.StmtFor',
     'foam.grammars.js.ast.StmtForEach',
@@ -296,9 +299,9 @@ CLASS({
             //sym('withStmt'),
             sym('throwStmt'),
             sym('returnStmt'),
-            //sym('breakStmt'),
-            //sym('continueStmt'),
-            //sym('debuggerStmt'),
+            sym('breakStmt'),
+            sym('continueStmt'),
+            sym('debuggerStmt'),
             //sym('functionLiteral'),
             sym('varDeclStmt'),
             sym('exprStmt')        // For things like function calls and i++.
@@ -360,6 +363,10 @@ CLASS({
           throwStmt: seq1(2, 'throw', sym('ws'), sym('expr'), sym('ws'), ';'),
 
           returnStmt: seq1(2, 'return', sym('ws'), sym('expr'), sym('ws'), ';'),
+
+          breakStmt: seq('break', sym('ws'), ';'),
+          continueStmt: seq('continue', sym('ws'), ';'),
+          debuggerStmt: seq('debugger', sym('ws'), ';'),
 
           // START HERE: adding more statement types. See MDN reference for
           // exacting parsing details.
@@ -520,6 +527,16 @@ CLASS({
             return self.StmtReturn.create({ expr: xs });
           },
 
+          breakStmt: function(xs) {
+            return self.StmtBreak.create();
+          },
+          continueStmt: function(xs) {
+            return self.StmtContinue.create();
+          },
+          debuggerStmt: function(xs) {
+            return self.StmtDebugger.create();
+          },
+
           varDeclNoInit: function(xs) {
             return self.VarDecl.create({ name: xs });
           },
@@ -538,7 +555,7 @@ CLASS({
 
   methods: [
     function execute() {
-      var p = this.parser.parseString('return x[2];');
+      var p = this.parser.parseString('{ continue; break; debugger;}');
       console.log.json(p);
     },
   ]
