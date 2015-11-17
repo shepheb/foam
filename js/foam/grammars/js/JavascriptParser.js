@@ -51,6 +51,9 @@ CLASS({
 
   properties: [
     {
+      name: 'inputFile',
+    },
+    {
       name: 'parser',
       factory: function() {
         var self = this;
@@ -173,7 +176,7 @@ CLASS({
 
         var g = {
           __proto__: exprGrammar,
-          START: sym('statement'),
+          START: sym('statements'),
 
           // Here's the order of precedence for the special expressions, which
           // is pretty tricky in JS. Actually, this is simplified by disallowing
@@ -285,7 +288,9 @@ CLASS({
 
 
           // Statements!
-          block: seq1(2, '{', sym('ws'), repeat(sym('statement'), sym('ws')), sym('ws'), '}'),
+          statements: seq1(1, sym('ws'), repeat(sym('statement'), sym('ws')), sym('ws')),
+
+          block: seq1(1, '{', sym('statements'), '}'),
 
           statement: alt(
             sym('emptyStmt'),
@@ -371,9 +376,6 @@ CLASS({
           breakStmt: seq('break', sym('ws'), ';'),
           continueStmt: seq('continue', sym('ws'), ';'),
           debuggerStmt: seq('debugger', sym('ws'), ';'),
-
-          // START HERE: adding more statement types. See MDN reference for
-          // exacting parsing details.
 
 
           // General helpers
@@ -567,8 +569,15 @@ CLASS({
 
   methods: [
     function execute() {
-      var p = this.parser.parseString('{ continue; function f(a, b, c) { butts(lol); } f();}');
+      if (!this.inputFile) {
+        console.error('Missing required parameter: inputFile');
+        return;
+      }
+
+      var buf = require('fs').readFileSync(this.inputFile);
+      var p = this.parser.parseString(buf.toString());
       Array.isArray(p) ? p.forEach(function(x) { console.log.json(x); }) : console.log.json(p);
+      console.log('Done parsing.');
     },
   ]
 });
