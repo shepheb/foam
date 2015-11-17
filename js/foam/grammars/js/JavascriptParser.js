@@ -25,6 +25,7 @@ CLASS({
     'foam.grammars.js.ast.ExprBinOp',
     'foam.grammars.js.ast.ExprCall',
     'foam.grammars.js.ast.ExprDot',
+    'foam.grammars.js.ast.ExprFunctionLiteral',
     'foam.grammars.js.ast.ExprIndex',
     'foam.grammars.js.ast.ExprNew',
     'foam.grammars.js.ast.ExprNumericLiteral',
@@ -242,7 +243,8 @@ CLASS({
 
           identList: bracketed('(', ',', ')', sym('identifier')),
           // See below for block.
-          functionLiteral: pick([2, 4], seq('function', sym('ws'),
+          functionLiteral: pick([2, 4, 6], seq('function', sym('ws'),
+              optional(sym('identifier')), sym('ws'),
               sym('identList'), sym('ws'), sym('block'))),
 
           term0: alt(
@@ -296,13 +298,15 @@ CLASS({
             // TODO(braden): Switch statements. They suck, so I'm ignoring them.
             //sym('switchStmt'),
             sym('tryCatchStmt'),
+            // TODO(braden): With statements. No one uses these, but they're
+            // straightforward.
             //sym('withStmt'),
             sym('throwStmt'),
             sym('returnStmt'),
             sym('breakStmt'),
             sym('continueStmt'),
             sym('debuggerStmt'),
-            //sym('functionLiteral'),
+            sym('functionLiteral'),
             sym('varDeclStmt'),
             sym('exprStmt')        // For things like function calls and i++.
           ),
@@ -447,6 +451,14 @@ CLASS({
             return self.ExprStringLiteral.create({ value: xs });
           },
 
+          functionLiteral: function(xs) {
+            return self.ExprFunctionLiteral.create({
+              name: xs[0],
+              params: xs[1],
+              block: xs[2]
+            });
+          },
+
           var: function(xs) {
             return self.ExprVar.create({ name: xs });
           },
@@ -555,8 +567,8 @@ CLASS({
 
   methods: [
     function execute() {
-      var p = this.parser.parseString('{ continue; break; debugger;}');
-      console.log.json(p);
+      var p = this.parser.parseString('{ continue; function f(a, b, c) { butts(lol); } f();}');
+      Array.isArray(p) ? p.forEach(function(x) { console.log.json(x); }) : console.log.json(p);
     },
   ]
 });
