@@ -26,20 +26,17 @@ CLASS({
       type: 'foam.grammars.js.ast.Expr',
     },
     {
-      model_: 'ArrayProperty',
       name: 'ifBlock',
       required: true,
       documentation: 'The block of statements for the true case.',
       subType: 'foam.grammars.js.ast.Stmt',
     },
     {
-      model_: 'ArrayProperty',
       name: 'elseBlock',
       documentation: 'The block of statements for the else case, if any.',
       subType: 'foam.grammars.js.ast.Stmt',
     },
     {
-      model_: 'ArrayProperty',
       name: 'elseifs',
       documentation: 'An array of StmtIf objects for elseifs, if any.',
       subType: 'foam.grammars.js.ast.StmtIf',

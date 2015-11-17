@@ -78,6 +78,12 @@ CLASS({
           return p2;
         };
 
+        var notDoubled = function(p) {
+          var p2 = seq1(0, p, lookahead(notChar(p)));
+          p2.toString = function() { return p; };
+          return p2;
+        };
+
         // Takes four parsers: left, sep, right, element.
         // eg. [ , ] expr for [array, literals].
         // The resulting parser returns an array of element's results.
@@ -134,12 +140,13 @@ CLASS({
               { type: 'infixLeft', op: '==',  output: infix },
               { type: 'infixLeft', op: '!=',  output: infix },
             ],
-            [{ type: 'infixLeft', op: '&',  output: infix }],
+            [{ type: 'infixLeft', op: notDoubled('&'), output: infix }],
             [{ type: 'infixLeft', op: '^',  output: infix }],
-            [{ type: 'infixLeft', op: '|',  output: infix }],
+            [{ type: 'infixLeft', op: notDoubled('|'),  output: infix }],
             [{ type: 'infixLeft', op: '&&', output: infix }],
             [{ type: 'infixLeft', op: '||', output: infix }],
             /*
+            TODO(braden): Bring back the ternary operator.
             [
               {
                 type: 'ternaryRight',
