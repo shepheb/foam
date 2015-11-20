@@ -25,7 +25,9 @@ CLASS({
       type: 'Box',
       postSet: function(old, nu) {
         if ( nu && this.queue.length ) {
-          nu.put(this.queue.shift());
+          var msg = this.queue.shift();
+          console.log('OTFB dequeued', msg);
+          nu.put(msg);
           this.delegate = '';
         }
       }
@@ -39,9 +41,11 @@ CLASS({
   methods: {
     put: function(msg) {
       if ( this.delegate && ! this.queue.length ) {
+        console.log('OTFB immediate', msg);
         this.delegate.put(msg);
         this.delegate = '';
       } else {
+        console.log('OTFB queued', msg);
         this.queue.push(msg);
       }
     }

@@ -35,7 +35,7 @@ CLASS({
   methods: [
     function put(msg) {
       if ( this.maybeHandleMessage(msg) ) return;
-      debugger;
+      console.log('AndBox put: ', msg);
 
       if ( this.singleReply ) {
         msg.replyBox.put(this.BoxMsg.create());
@@ -44,6 +44,7 @@ CLASS({
       }
 
       Object_forEach(this.delegates, function(delegate) {
+        console.log(delegate);
         delegate.put(msg);
       });
     }

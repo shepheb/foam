@@ -58,7 +58,6 @@ CLASS({
 
   listeners: [
     function massageSentMessage(msg) {
-      debugger;
       msg.body = msg.subBox + ': ' + msg.body;
       msg.subBox = '';
       return msg;
@@ -70,7 +69,7 @@ CLASS({
 
       // And register the polling box for setting its delegate.
       this.deliveryService.register(
-          '/chat/poll/' + msg.subBox,
+          '/chat/poll' + msg.subBox,
           this.CallbackBox.create({
             callback: function(msg) {
               longPoller.delegate = msg.replyBox;
@@ -81,7 +80,7 @@ CLASS({
       // Finally, register this new client with the broadcaster.
       this.broadcaster.put(this.RegisterMsg.create({
         subBox: msg.subBox, // user name
-        body: this.SubBox.create({ sub: '/msg', delegate: longPoller })
+        body: longPoller
       }));
     }
   ],
