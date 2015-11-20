@@ -729,6 +729,8 @@ v                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // we can import the prop
               name: a[i].name,
               code: a[i]
             });
+          } else if ( ! UnitTest.isInstance(a[i]) ) {
+            a[i] = UnitTest.create(a[i]);
           }
         }
         return a;
