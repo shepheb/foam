@@ -1,0 +1,51 @@
+/**
+ * @license
+ * Copyright 2015 Google Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+CLASS({
+  package: 'foam.net.box',
+  name: 'AndBox',
+  extends: 'foam.net.box.GroupBox',
+  requires: [
+    'foam.net.box.BoxMsg',
+    'foam.net.box.GroupBox',
+    'foam.net.box.NullBox'
+  ],
+  documentation: 'A $$DOC{ref:"foam.net.box.GroupBox"} that forwards each message to each child $$DOC{ref:"foam.net.box.Box"}.',
+  properties: [
+    {
+      name: 'singleReply',
+      defaultValue: false,
+      documentation: 'Set to true and this box will send a single empty reply, instead of letting each child box respond.'
+    }
+  ],
+
+  methods: [
+    function put(msg) {
+      if ( this.maybeHandleMessage(msg) ) return;
+      debugger;
+
+      if ( this.singleReply ) {
+        msg.replyBox.put(this.BoxMsg.create());
+        msg = msg.clone();
+        msg.replyBox = this.NullBox.create();
+      }
+
+      Object_forEach(this.delegates, function(delegate) {
+        delegate.put(msg);
+      });
+    }
+  ]
+});
