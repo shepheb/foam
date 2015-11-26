@@ -19,16 +19,129 @@ CLASS({
   name: 'Site',
   extends: 'foam.ui.View',
   requires: [
+    'foam.flow.AceCodeView',
+    'foam.flow.SourceCode',
+    'foam.sandbox.IsolatedContext',
+    'foam.ui.DetailView',
     'foam.ui.md.SharedStyles',
   ],
 
   properties: [
+    {
+      name: 'isolatedContext_',
+      hidden: true,
+      factory: function() {
+        // IsolatedContext is a wrapper, we really want its Y.
+        return this.IsolatedContext.create(null, GLOBAL.X).Y;
+      }
+    },
+    {
+      name: 'code1',
+      factory: function() {
+        return this.SourceCode.create({
+          code: "CLASS({\n  package: 'foam.sandbox',\n  name: 'Person',\n" +
+              "  properties: ['id', 'name', 'age'],\n});"
+        });
+      },
+      postSet: function(old, nu) {
+        this.runSample1();
+      },
+    },
+    {
+      name: 'editor1',
+      factory: function() {
+        return this.AceCodeView.create({
+          data$: this.code1$,
+          pathToAce: 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.2/ace.js',
+          //aceMode: 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.2/mode-javascript.js',
+          //aceTheme: 'https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.2/theme-textmate.js',
+          aceMinLines: 25,
+        });
+      }
+    },
+    {
+      model_: 'foam.core.types.StringEnumProperty',
+      name: 'features1',
+      defaultValue: '',
+      choices: [
+        ['DetailView', 'Detail view'],
+        ['CitationView', 'Summary view'],
+        ['Table', 'Table view'],
+      ],
+      postSet: function(old, nu) {
+        this.runSample1();
+      },
+    },
+    {
+      name: '$output1',
+      getter: function() {
+        return this.X.$(this.id + '-output-1');
+      }
+    },
+    {
+      name: 'commentary1',
+      documentation: 'Filled in when features1 is set.',
+      mode: 'read-only',
+    },
+    {
+      name: 'featureImplementations',
+      documentation: 'A map for functions that return views as output.',
+      factory: function() {
+        return {
+          DetailView: function(model) {
+            return this.DetailView.create({ data: model.create() });
+          },
+        };
+      }
+    },
+    {
+      name: 'commentary',
+      factory: function() {
+        return {
+          DetailView: 'FOAM can generate default views from a model. They can easily be customized, or replaced altogether.',
+        };
+      }
+    },
   ],
 
   methods: [
     function init() {
       this.SharedStyles.create();
       this.SUPER();
+    },
+    function initHTML() {
+      this.SUPER();
+      this.runSample1();
+    },
+  ],
+
+  listeners: [
+    {
+      name: 'runSample1',
+      isMerged: 250,
+      code: function() {
+        if (!this.$output1) return;
+        var target = this.featureImplementations[this.features1];
+        if (!target) {
+          this.$output1.innerHTML = 'Select a feature';
+          this.commentary1 = '';
+        } else {
+          var str = this.code1.code;
+          var model;
+          var X = this.isolatedContext_;
+          try {
+            model = eval('(function(X, CLASS){' + str + '; return X.__model;}).call(null, X, function(h, x) { X.__model = X.CLASS(h, x); })');
+          } catch (e) {
+            this.$output1.innerHTML = 'Error loading model: ' + e;
+            return;
+          }
+
+          var v = target.call(this, model);
+          this.$output1.innerHTML = v.toHTML();
+          v.initHTML();
+          this.commentary1 = this.commentary[this.features1];
+        }
+      }
     },
   ],
 
@@ -148,7 +261,10 @@ CLASS({
             &mdash; as FOAM continues to evolve.</p>
           </div>
           <div class="md-card site-sample">
-            First code sample block goes here.
+            <div class="site-sample-code">%%editor1</div>
+            <div class="site-sample-features">$$features1</div>
+            <div id="<%= this.id %>-output-1" class="site-sample-output"></div>
+            $$commentary1
           </div>
           <div class="md-card site-sample">
             Another code sample block goes here.
