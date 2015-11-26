@@ -22,7 +22,9 @@ CLASS({
     'foam.flow.AceCodeView',
     'foam.flow.SourceCode',
     'foam.sandbox.IsolatedContext',
-    'foam.ui.DetailView',
+    'foam.ui.md.CitationView',
+    'foam.ui.md.DetailView',
+    'foam.ui.md.FlexTableView',
     'foam.ui.md.SharedStyles',
   ],
 
@@ -39,8 +41,27 @@ CLASS({
       name: 'code1',
       factory: function() {
         return this.SourceCode.create({
-          code: "CLASS({\n  package: 'foam.sandbox',\n  name: 'Person',\n" +
-              "  properties: ['id', 'name', 'age'],\n});"
+          code: "CLASS({\n" +
+              "  package: 'foam.sandbox',\n" +
+              "  name: 'Person',\n" +
+              "  properties: [\n" +
+              "    {\n" +
+              "      name: 'id',\n" +
+              "      hidden: true,\n" +
+              "    },\n" +
+              "    'name',\n" +
+              "    {\n" +
+              "      type: 'Int',\n" +
+              "      name: 'age'\n" +
+              "    },\n" +
+              "    {\n" +
+              "      type: 'foam.core.types.StringEnum',\n" +
+              "      name: 'sex',\n" +
+              "      defaultValue: 'M',\n" +
+              "      choices: [['M', 'Male'], ['F', 'Female']]\n" +
+              "    }\n" +
+              "  ]\n" +
+              "});\n"
         });
       },
       postSet: function(old, nu) {
@@ -62,7 +83,12 @@ CLASS({
     {
       model_: 'foam.core.types.StringEnumProperty',
       name: 'features1',
-      defaultValue: '',
+      label: 'Choose a Feature',
+      view: {
+        factory_: 'foam.ui.md.PopupChoiceView',
+        floatingLabel: true,
+      },
+      defaultValue: 'DetailView',
       choices: [
         ['DetailView', 'Detail view'],
         ['CitationView', 'Summary view'],
@@ -87,10 +113,23 @@ CLASS({
       name: 'featureImplementations',
       documentation: 'A map for functions that return views as output.',
       factory: function() {
+        var args = {
+          name: 'John Smith',
+          age: 30
+        };
         return {
           DetailView: function(model) {
-            return this.DetailView.create({ data: model.create() });
+            return this.DetailView.create({ data: model.create(args) });
           },
+          CitationView: function(model) {
+            return this.CitationView.create({ data: model.create(args) });
+          },
+          Table: function(model) {
+            return this.FlexTableView.create({
+              model: model,
+              data: [model.create(args)],
+            });
+          }
         };
       }
     },
@@ -99,6 +138,7 @@ CLASS({
       factory: function() {
         return {
           DetailView: 'FOAM can generate default views from a model. They can easily be customized, or replaced altogether.',
+          CitationView: 'FOAM can make a reasonable guess at a summary for a model - in this case the "name" property is chosen.',
         };
       }
     },
@@ -136,10 +176,15 @@ CLASS({
             return;
           }
 
-          var v = target.call(this, model);
-          this.$output1.innerHTML = v.toHTML();
-          v.initHTML();
-          this.commentary1 = this.commentary[this.features1];
+          try {
+            var v = target.call(this, model);
+            this.$output1.innerHTML = v.toHTML();
+            v.initHTML();
+            this.commentary1 = this.commentary[this.features1];
+          } catch (e) {
+            this.$output1.innerHTML = 'Error rendering view: ' + e;
+            return;
+          }
         }
       }
     },
@@ -198,6 +243,22 @@ CLASS({
         display: flex;
         flex-direction: column;
         padding: 8px;
+      }
+
+      .site-sample {
+        height: 700px;
+      }
+      .site-sample-bottom {
+        display: flex;
+      }
+      .site-sample-side {
+        width: 40%;
+      }
+      .site-sample-output {
+        width: 60%;
+      }
+      .site-sample-commentary {
+        margin: 16px;
       }
 
       @media (max-width: 900px) {
@@ -262,12 +323,14 @@ CLASS({
           </div>
           <div class="md-card site-sample">
             <div class="site-sample-code">%%editor1</div>
-            <div class="site-sample-features">$$features1</div>
-            <div id="<%= this.id %>-output-1" class="site-sample-output"></div>
-            $$commentary1
-          </div>
-          <div class="md-card site-sample">
-            Another code sample block goes here.
+            <div class="site-sample-bottom">
+              <div class="site-sample-side">
+                <div class="site-sample-features">$$features1</div>
+                <div class="site-sample-commentary">$$commentary1</div>
+              </div>
+              <div id="<%= this.id %>-output-1" class="site-sample-output">
+              </div>
+            </div>
           </div>
         </div>
       </div>
