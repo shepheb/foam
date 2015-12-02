@@ -23,6 +23,9 @@ CLASS({
   requires: [
     'foam.u2.Input'
   ],
+  imports: [
+    'dynamic',
+  ],
   properties: [
     ['nodeName', 'div'],
     {
@@ -55,17 +58,16 @@ CLASS({
   ],
 
   methods: [
-    function init() {
-      this.SUPER();
+    function initE() {
       var self = this;
       this.cls(this.myCls());
       if (this.showLabel) {
         this.start('label')
             .cls(this.myCls('label'))
-            .cls(function() {
-              return (typeof self.data !== 'undefined' && self.data !== '') ||
-                  self.focused_ ? self.myCls('label-offset') : '';
-            }.on$(this.X, this.data$, this.focused_$))
+            .cls(this.dynamic(function(data, focused_) {
+              return (typeof data !== 'undefined' && data !== '') ||
+                  focused_ ? self.myCls('label-offset') : '';
+            }, this.data$, this.focused_$))
             .add(this.label$)
             .end();
       } else {
