@@ -20,24 +20,16 @@ CLASS({
   name: 'Select',
   extends: 'foam.u2.Element',
 
+  traits: [
+    'foam.u2.ChoiceViewTrait',
+  ],
+
   imports: [
     'dynamic',
   ],
 
   properties: [
-    {
-      name: 'options',
-      adapt: function(_, options) {
-        return options.map(function(o) { return Array.isArray(o) ? o : [o, o]; });
-      },
-      factory: function() {
-        return this.prop && this.prop.choices || [];
-      }
-    },
     [ 'nodeName', 'select' ],
-    'prop',
-    'data',
-    'placeholder'
   ],
 
   methods: [
@@ -56,7 +48,7 @@ CLASS({
           cs.push(self.E('option').attrs({value: o[0]}).add(o[1]));
         }
         return cs;
-      }, this.options$, this.placeholder$));
+      }, this.choices$, this.placeholder$));
     }
   ]
 });
